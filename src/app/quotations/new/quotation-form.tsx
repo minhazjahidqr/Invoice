@@ -1,5 +1,5 @@
 'use client';
-import { useState, useTransition } from 'react';
+import { useState, useTransition, ChangeEvent } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,11 +12,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2 } from 'lucide-react';
+import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
 import { defaultQuotationItems, type Client, type Project } from '@/lib/data';
 import Image from 'next/image';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   clientId: z.string().min(1, 'Client is required.'),
@@ -54,6 +55,17 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
     control: form.control,
     name: "items",
   });
+
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>, index: number) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        form.setValue(`items.${index}.imageUrl`, reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSuggest = () => {
     const draft = form.getValues('quotationDraft');
@@ -191,7 +203,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                 {fields.map((field, index) => (
                     <TableRow key={field.id}>
                     <TableCell>
-                        <div className="flex flex-col gap-2">
+                        <div className="flex flex-col gap-2 items-center">
                            <Image 
                              src={form.watch(`items.${index}.imageUrl`) || 'https://picsum.photos/seed/placeholder/100/100'}
                              alt={form.watch(`items.${index}.description`) || 'Item image'}
@@ -199,7 +211,22 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                              height={64}
                              className="rounded-md object-cover"
                            />
-                           <FormField control={form.control} name={`items.${index}.imageUrl`} render={({ field }) => <Input {...field} placeholder="Image URL" className="text-xs h-8"/>}/>
+                           <FormField
+                              control={form.control}
+                              name={`items.${index}.imageUrl`}
+                              render={() => (
+                                <FormItem>
+                                  <FormControl>
+                                      <Label htmlFor={`picture-${index}`} className="cursor-pointer inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
+                                          <Upload className="h-3 w-3" />
+                                          <span>Upload</span>
+                                      </Label>
+                                  </FormControl>
+                                  <Input id={`picture-${index}`} type="file" className="sr-only" accept="image/*" onChange={(e) => handleImageUpload(e, index)} />
+                                  <FormMessage/>
+                                </FormItem>
+                              )}
+                            />
                         </div>
                     </TableCell>
                     <TableCell>
@@ -260,3 +287,5 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
     </Form>
   );
 }
+
+    
