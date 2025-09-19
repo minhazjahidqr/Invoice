@@ -1,18 +1,65 @@
+
+'use client';
+
+import { useRef } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { mockInvoices, defaultQuotationItems } from '@/lib/data';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Download, Share2, CreditCard } from 'lucide-react';
+import { Download, Share2, CreditCard, Loader2 } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { useToast } from '@/hooks/use-toast';
+import React from 'react';
+
 
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const invoice = mockInvoices.find(inv => inv.id === params.id);
   const companyLogo = PlaceHolderImages.find(img => img.id === 'company-logo');
+  const invoiceRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const [isDownloading, setIsDownloading] = React.useState(false);
+
+  const handleDownloadPdf = async () => {
+    const element = invoiceRef.current;
+    if (!element) return;
+
+    setIsDownloading(true);
+
+    try {
+        const canvas = await html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+        });
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+        const imgX = (pdfWidth - imgWidth * ratio) / 2;
+        const imgY = 0;
+        
+        pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+        pdf.save(`invoice-${invoice?.id}.pdf`);
+    } catch (error) {
+        console.error("Failed to generate PDF", error);
+        toast({
+            title: "Download Failed",
+            description: "Could not generate PDF. Please try again.",
+            variant: "destructive",
+        });
+    } finally {
+        setIsDownloading(false);
+    }
+  };
 
   if (!invoice) {
     return (
@@ -33,13 +80,16 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
             <div className="flex items-center justify-between mb-4">
                 <h1 className="font-headline text-2xl font-bold">Invoice {invoice.id}</h1>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline"><Download className="mr-2 h-4 w-4"/> PDF</Button>
+                    <Button variant="outline" onClick={handleDownloadPdf} disabled={isDownloading}>
+                        {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4"/>}
+                         PDF
+                    </Button>
                     <Button variant="outline"><Share2 className="mr-2 h-4 w-4"/> Share</Button>
                     <Button><CreditCard className="mr-2 h-4 w-4"/> Mark as Paid</Button>
                 </div>
             </div>
 
-            <Card className="p-8">
+            <Card className="p-8" ref={invoiceRef}>
                 <header className="grid grid-cols-2 gap-8 items-start mb-10">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
