@@ -20,6 +20,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from '@/hooks/use-toast';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import type { DateRange } from 'react-day-picker';
+import { subDays } from 'date-fns';
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   Paid: 'default',
@@ -36,6 +39,11 @@ export default function DashboardPage() {
   const [quotations, setQuotations] = useState<Quotation[]>(initialQuotations);
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
   const { toast } = useToast();
+
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 29),
+    to: new Date(),
+  });
 
   const handleQuotationStatusChange = (quotationId: string, newStatus: Quotation['status']) => {
     setQuotations(quotations.map(quo =>
@@ -57,20 +65,35 @@ export default function DashboardPage() {
     });
   };
 
-  const recentQuotations = quotations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
-  const recentInvoices = invoices.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+  const filteredInvoices = invoices.filter(invoice => {
+      const invoiceDate = new Date(invoice.date);
+      if (date?.from && date?.to) {
+        return invoiceDate >= date.from && invoiceDate <= date.to;
+      }
+      return true;
+  });
 
-  const recentActivity: (Quotation | Invoice)[] = [...recentQuotations, ...recentInvoices]
+  const filteredQuotations = quotations.filter(quotation => {
+    const quotationDate = new Date(quotation.date);
+    if (date?.from && date?.to) {
+      return quotationDate >= date.from && quotationDate <= date.to;
+    }
+    return true;
+  });
+
+  const recentActivity: (Quotation | Invoice)[] = [...filteredQuotations, ...filteredInvoices]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
   
-  const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((acc, i) => acc + i.total, 0);
-  const pendingAmount = invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue' || i.status === 'Pending').reduce((acc, i) => acc + i.total, 0);
+  const totalRevenue = filteredInvoices.filter(i => i.status === 'Paid').reduce((acc, i) => acc + i.total, 0);
+  const pendingAmount = filteredInvoices.filter(i => i.status === 'Sent' || i.status === 'Overdue' || i.status === 'Pending').reduce((acc, i) => acc + i.total, 0);
+  const activeQuotationsCount = filteredQuotations.filter(q => q.status === 'Sent' || q.status === 'Approved').length;
 
   return (
     <AppLayout>
       <div className="grid gap-8">
         <div className="flex items-center justify-between">
           <h1 className="font-headline text-3xl font-semibold tracking-tight">Dashboard</h1>
+          <DateRangePicker date={date} onDateChange={setDate} />
         </div>
         <div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -84,7 +107,7 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
                 <p className="text-xs text-muted-foreground">
-                  +20.1% from last month
+                  Revenue in the selected date range.
                 </p>
               </CardContent>
             </Card>
@@ -98,7 +121,7 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(pendingAmount)}</div>
                 <p className="text-xs text-muted-foreground">
-                  {invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue' || i.status === 'Pending').length} invoices pending
+                  {filteredInvoices.filter(i => i.status === 'Sent' || i.status === 'Overdue' || i.status === 'Pending').length} invoices pending
                 </p>
               </CardContent>
             </Card>
@@ -108,7 +131,7 @@ export default function DashboardPage() {
                 <FileText className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">+{quotations.filter(q => q.status === 'Sent' || q.status === 'Approved').length}</div>
+                <div className="text-2xl font-bold">+{activeQuotationsCount}</div>
                 <p className="text-xs text-muted-foreground">
                   Currently awaiting client action
                 </p>
@@ -120,7 +143,7 @@ export default function DashboardPage() {
               <CardHeader className="flex flex-row items-center">
                 <div className="grid gap-2">
                   <CardTitle>Recent Activity</CardTitle>
-                  <CardDescription>An overview of your latest quotations and invoices.</CardDescription>
+                  <CardDescription>An overview of your latest quotations and invoices in the selected range.</CardDescription>
                 </div>
                 <Button asChild size="sm" className="ml-auto gap-1">
                   <Link href="/quotations">
@@ -194,6 +217,11 @@ export default function DashboardPage() {
                     })}
                   </TableBody>
                 </Table>
+                 {recentActivity.length === 0 && (
+                  <div className="text-center py-10 text-muted-foreground">
+                      No activity found for the selected date range.
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
