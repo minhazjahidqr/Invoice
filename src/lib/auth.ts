@@ -7,7 +7,7 @@
 const USER_STORAGE_KEY = 'auth_user';
 const USERS_STORAGE_KEY = 'auth_users_list';
 
-type User = {
+export type User = {
     id: string;
     name: string;
     email: string;
@@ -15,7 +15,7 @@ type User = {
 };
 
 // Mock user database
-function getStoredUsers(): User[] {
+export function getStoredUsers(): User[] {
     if (typeof window === 'undefined') return [];
     const usersJson = localStorage.getItem(USERS_STORAGE_KEY);
     return usersJson ? JSON.parse(usersJson) : [];
