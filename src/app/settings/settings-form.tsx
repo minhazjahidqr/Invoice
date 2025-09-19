@@ -36,6 +36,7 @@ const settingsSchema = z.object({
   pageSize: z.enum(['a4', 'letter']),
   headerTitleColor: z.string().optional(),
   footerText: z.string().optional(),
+  headerBackgroundImage: z.string().optional(),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -63,6 +64,7 @@ export const defaultSettings: SettingsFormValues = {
   pageSize: 'a4',
   headerTitleColor: '231 48% 48%',
   footerText: 'Thank you for your business!',
+  headerBackgroundImage: '',
 };
 
 function applySettings(settings: SettingsFormValues) {
@@ -104,6 +106,7 @@ function applySettings(settings: SettingsFormValues) {
 export function SettingsForm() {
   const { toast } = useToast();
   const [logoPreview, setLogoPreview] = useState<string | undefined>(defaultSettings.companyLogo);
+  const [headerBgPreview, setHeaderBgPreview] = useState<string | undefined>(defaultSettings.headerBackgroundImage);
   
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -116,6 +119,7 @@ export function SettingsForm() {
       const parsedSettings = JSON.parse(savedSettings);
       form.reset(parsedSettings);
       setLogoPreview(parsedSettings.companyLogo);
+      setHeaderBgPreview(parsedSettings.headerBackgroundImage);
       applySettings(parsedSettings);
     }
   }, [form]);
@@ -132,14 +136,14 @@ export function SettingsForm() {
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, [form]);
 
-  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>, fieldName: keyof SettingsFormValues, setPreview: (value: string) => void) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
-        form.setValue('companyLogo', result);
-        setLogoPreview(result);
+        form.setValue(fieldName, result);
+        setPreview(result);
       };
       reader.readAsDataURL(file);
     }
@@ -160,6 +164,7 @@ export function SettingsForm() {
     form.reset(defaultSettings);
     applySettings(defaultSettings);
     setLogoPreview(defaultSettings.companyLogo);
+    setHeaderBgPreview(defaultSettings.headerBackgroundImage);
     toast({
       title: 'Settings Reset',
       description: 'All settings have been reset to their defaults.',
@@ -360,7 +365,7 @@ export function SettingsForm() {
                                             <span>Upload New Logo</span>
                                         </Label>
                                     </FormControl>
-                                    <Input id="logo-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageUpload} />
+                                    <Input id="logo-upload" type="file" className="sr-only" accept="image/*" onChange={(e) => handleImageUpload(e, 'companyLogo', setLogoPreview)} />
                                     <FormMessage/>
                                 </FormItem>
                                 )}
@@ -507,7 +512,7 @@ export function SettingsForm() {
                         Customize the header of your PDF documents.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="grid md:grid-cols-2 gap-6">
                         <FormField
                             control={form.control}
                             name="headerTitleColor"
@@ -522,6 +527,28 @@ export function SettingsForm() {
                                 </FormItem>
                             )}
                         />
+                         <div className="space-y-2">
+                            <FormLabel>Header Background Image</FormLabel>
+                            <div className="flex items-center gap-4">
+                            {headerBgPreview && <Image src={headerBgPreview} alt="Header background preview" width={100} height={64} className="rounded-md object-cover bg-muted" />}
+                            <FormField
+                                control={form.control}
+                                name="headerBackgroundImage"
+                                render={() => (
+                                <FormItem>
+                                    <FormControl>
+                                        <Label htmlFor="header-bg-upload" className="cursor-pointer inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
+                                            <Upload className="h-4 w-4" />
+                                            <span>Upload Image</span>
+                                        </Label>
+                                    </FormControl>
+                                    <Input id="header-bg-upload" type="file" className="sr-only" accept="image/*" onChange={(e) => handleImageUpload(e, 'headerBackgroundImage', setHeaderBgPreview)} />
+                                    <FormMessage/>
+                                </FormItem>
+                                )}
+                            />
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
@@ -554,5 +581,3 @@ export function SettingsForm() {
     </Form>
   );
 }
-
-    

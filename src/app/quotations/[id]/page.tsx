@@ -86,6 +86,14 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
   const subtotal = defaultQuotationItems.reduce((acc, item) => acc + item.total, 0);
   const tax = subtotal * 0.05;
 
+  const headerStyle = settings.headerBackgroundImage
+    ? {
+        backgroundImage: `url(${settings.headerBackgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }
+    : {};
+
   return (
     <AppLayout>
         <div className="max-w-4xl mx-auto">
@@ -102,8 +110,9 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
             </div>
 
             <Card className="p-8" ref={quotationRef}>
-                <header className="grid grid-cols-2 gap-8 items-start mb-10">
-                    <div>
+                <header className="relative grid grid-cols-2 gap-8 items-start mb-10 rounded-lg overflow-hidden p-6" style={headerStyle}>
+                     {settings.headerBackgroundImage && <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>}
+                    <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-2">
                              {companyLogo?.imageUrl ? (
                                 <Image 
@@ -112,19 +121,19 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                                     width={40}
                                     height={40}
                                     data-ai-hint={companyLogo.imageHint}
-                                    className="object-contain"
+                                    className="object-contain bg-white/80 p-1 rounded"
                                 />
                              ) : (
                                 <Icons.Logo className="w-10 h-10 text-primary" />
                              )}
-                             <h2 className="font-headline text-2xl font-bold">{settings.companyName}</h2>
+                             <h2 className="font-headline text-2xl font-bold text-white shadow-md">{settings.companyName}</h2>
                         </div>
-                        <p className="text-muted-foreground text-sm whitespace-pre-line">{settings.companyAddress}</p>
-                        <p className="text-muted-foreground text-sm">{settings.companyContact}</p>
+                        <p className="text-sm text-gray-200 shadow-sm whitespace-pre-line">{settings.companyAddress}</p>
+                        <p className="text-sm text-gray-200 shadow-sm">{settings.companyContact}</p>
                     </div>
-                    <div className="text-right">
-                        <h1 className="text-4xl font-bold tracking-tight mb-2" style={{color: `hsl(${settings.headerTitleColor})`}}>QUOTATION</h1>
-                        <div className="text-sm">
+                    <div className="relative z-10 text-right">
+                        <h1 className="text-4xl font-bold tracking-tight mb-2 text-white" style={{color: `hsl(${settings.headerTitleColor})`}}>QUOTATION</h1>
+                        <div className="text-sm text-gray-200">
                             <p><strong>Quotation #:</strong> {quotation.id}</p>
                             <p><strong>Date:</strong> {new Date(quotation.date).toLocaleDateString()}</p>
                             <p><strong>Status:</strong> {quotation.status}</p>
@@ -215,5 +224,3 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     </AppLayout>
   );
 }
-
-    
