@@ -1,14 +1,94 @@
+'use client';
+
+import { useState } from 'react';
 import { AppLayout } from '@/components/app-layout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { mockClients, type Client } from '@/lib/data';
+import { MoreHorizontal, UserPlus } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export default function ClientsPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  const filteredClients = mockClients.filter(client =>
+    client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <AppLayout>
-      <div className="flex flex-col items-center justify-center h-full text-center">
-        <h1 className="font-headline text-3xl font-semibold">Clients</h1>
-        <p className="text-muted-foreground mt-2 max-w-md">
-            A dedicated space to manage all your client information, contact details, and history is coming soon.
-        </p>
-      </div>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="font-headline">Clients</CardTitle>
+              <CardDescription>
+                View and manage your client information.
+              </CardDescription>
+            </div>
+            <Button>
+              <UserPlus className="mr-2 h-4 w-4" /> Add New Client
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="mb-4">
+            <Input
+              placeholder="Filter clients by name or email..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Client Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead className="hidden md:table-cell">Client ID</TableHead>
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredClients.map((client) => (
+                <TableRow key={client.id}>
+                  <TableCell className="font-medium">{client.name}</TableCell>
+                  <TableCell>{client.email}</TableCell>
+                  <TableCell className="hidden text-muted-foreground md:table-cell">{client.id}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <MoreHorizontal className="h-4 w-4" />
+                          <span className="sr-only">Toggle menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem>View Details</DropdownMenuItem>
+                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {filteredClients.length === 0 && (
+             <div className="text-center py-10 text-muted-foreground">
+                No clients found for &quot;{searchTerm}&quot;.
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </AppLayout>
   );
 }
