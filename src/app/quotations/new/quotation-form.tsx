@@ -193,9 +193,9 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                 <TableHeader>
                 <TableRow>
                     <TableHead className="w-[50px]">SL</TableHead>
-                    <TableHead className="w-[120px]">Item Image</TableHead>
                     <TableHead>Item Discription</TableHead>
                     <TableHead>Brand Name</TableHead>
+                    <TableHead className="w-[120px]">Item Image</TableHead>
                     <TableHead className="w-[100px]">Quantity</TableHead>
                     <TableHead className="w-[120px]">Unit Price</TableHead>
                     <TableHead className="w-[120px] text-right">Total</TableHead>
@@ -206,6 +206,12 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                 {fields.map((field, index) => (
                     <TableRow key={field.id}>
                     <TableCell>{index + 1}</TableCell>
+                    <TableCell>
+                        <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => <Input {...field} placeholder="Item description"/>}/>
+                    </TableCell>
+                     <TableCell>
+                        <FormField control={form.control} name={`items.${index}.brandName`} render={({ field }) => <Input {...field} placeholder="Brand name"/>}/>
+                    </TableCell>
                     <TableCell>
                         <div className="flex flex-col gap-2 items-center">
                            <Image 
@@ -232,12 +238,6 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                               )}
                             />
                         </div>
-                    </TableCell>
-                    <TableCell>
-                        <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => <Input {...field} placeholder="Item description"/>}/>
-                    </TableCell>
-                     <TableCell>
-                        <FormField control={form.control} name={`items.${index}.brandName`} render={({ field }) => <Input {...field} placeholder="Brand name"/>}/>
                     </TableCell>
                     <TableCell>
                         <FormField control={form.control} name={`items.${index}.quantity`} render={({ field }) => <Input type="number" {...field} />}/>

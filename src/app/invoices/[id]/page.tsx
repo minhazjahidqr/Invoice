@@ -80,9 +80,9 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[50px]">SL</TableHead>
-                                <TableHead className="w-[80px]">Item Image</TableHead>
                                 <TableHead>Item Discription</TableHead>
                                 <TableHead>Brand Name</TableHead>
+                                <TableHead className="w-[80px]">Item Image</TableHead>
                                 <TableHead className="text-center">Quantity</TableHead>
                                 <TableHead className="text-right">Unit Price</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
@@ -92,6 +92,8 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                             {defaultQuotationItems.map((item, index) => (
                                 <TableRow key={item.id}>
                                     <TableCell>{index + 1}</TableCell>
+                                    <TableCell className="font-medium">{item.description}</TableCell>
+                                    <TableCell>{item.brandName}</TableCell>
                                     <TableCell>
                                         <Image
                                           src={item.imageUrl ?? 'https://picsum.photos/seed/placeholder/64/64'}
@@ -102,8 +104,6 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                                           data-ai-hint={item.imageHint}
                                         />
                                     </TableCell>
-                                    <TableCell className="font-medium">{item.description}</TableCell>
-                                    <TableCell>{item.brandName}</TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
