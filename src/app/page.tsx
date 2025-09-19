@@ -196,7 +196,7 @@ export default function DashboardPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Type</TableHead>
-                      <TableHead>Client</TableHead>
+                      <TableHead className="hidden sm:table-cell">Client</TableHead>
                       <TableHead className="hidden sm:table-cell">Status</TableHead>
                       <TableHead className="hidden md:table-cell">Date</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
