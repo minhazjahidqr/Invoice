@@ -17,23 +17,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus, ImageOff } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
-import { defaultQuotationItems, type Client, type Quotation, getFromStorage, saveToStorage } from '@/lib/data';
+import { defaultQuotationItems, type Client, type Quotation, getFromStorage, saveToStorage, type QuotationItem } from '@/lib/data';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ClientForm } from '@/app/clients/client-form';
 
+const quotationItemSchema = z.object({
+  id: z.string(),
+  imageUrl: z.string().url().optional().or(z.literal('')),
+  brandName: z.string(),
+  description: z.string().min(1, 'Description is required.'),
+  quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
+  unitPrice: z.coerce.number().min(0, 'Price must be positive.'),
+  total: z.number(),
+  imageHint: z.string().optional(),
+});
+
+
 const formSchema = z.object({
   clientId: z.string().min(1, 'Client is required.'),
   projectName: z.string().min(2, 'Project name is required.'),
   quotationDraft: z.string(),
-  items: z.array(z.object({
-    imageUrl: z.string().url().optional().or(z.literal('')),
-    brandName: z.string(),
-    description: z.string().min(1, 'Description is required.'),
-    quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
-    unitPrice: z.coerce.number().min(0, 'Price must be positive.'),
-  })).min(1, 'At least one item is required.'),
+  items: z.array(quotationItemSchema).min(1, 'At least one item is required.'),
 });
 
 type QuotationFormValues = z.infer<typeof formSchema>;
@@ -60,7 +66,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
 - 8-Channel DVR
 - 4x Dome Cameras
 - 1TB Hard Drive`,
-      items: defaultQuotationItems.map(({id, total, imageHint, ...item}) => ({...item, imageUrl: item.imageUrl || ''})),
+      items: defaultQuotationItems,
     },
   });
 
@@ -143,7 +149,12 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
       return;
     }
 
-    const subtotal = data.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+    const updatedItems = data.items.map(item => ({
+        ...item,
+        total: item.quantity * item.unitPrice,
+    }))
+
+    const subtotal = updatedItems.reduce((acc, item) => acc + item.total, 0);
     const tax = subtotal * 0.05;
     const total = subtotal + tax;
     
@@ -155,7 +166,8 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
         projectName: data.projectName,
         date: new Date().toISOString(),
         total: total,
-        status: 'Sent'
+        status: 'Sent',
+        items: updatedItems,
     };
 
     const updatedQuotations = [newQuotation, ...existingQuotations];
@@ -170,7 +182,8 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     router.push('/quotations');
   }
   
-  const subtotal = form.watch('items').reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+  const watchedItems = form.watch('items');
+  const subtotal = watchedItems.reduce((acc, item) => acc + ((item.quantity || 0) * (item.unitPrice || 0)), 0);
   const tax = subtotal * 0.05; // 5% tax
   const total = subtotal + tax;
 
@@ -372,7 +385,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
                   variant="outline"
                   size="sm"
                   className="mt-4"
-                  onClick={() => append({ description: '', brandName: '', quantity: 1, unitPrice: 0, imageUrl: '' })}
+                  onClick={() => append({ id: `item-${Date.now()}`, description: '', brandName: '', quantity: 1, unitPrice: 0, imageUrl: '', total: 0 })}
               >
                   <PlusCircle className="mr-2 h-4 w-4" /> Add Item
               </Button>

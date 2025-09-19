@@ -4,7 +4,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/app-layout';
-import { getFromStorage, saveToStorage, defaultQuotationItems, type Quotation, type Client, type Invoice } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Quotation, type Client, type Invoice, type QuotationItem } from '@/lib/data';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -103,6 +103,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
         dueDate: dueDate.toISOString(),
         total: quotation.total,
         status: 'Draft',
+        items: quotation.items,
     };
 
     const updatedInvoices = [newInvoice, ...existingInvoices];
@@ -129,7 +130,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     );
   }
   
-  const subtotal = defaultQuotationItems.reduce((acc, item) => acc + item.total, 0);
+  const subtotal = (quotation.items || []).reduce((acc, item) => acc + item.total, 0);
   const tax = subtotal * 0.05;
 
   const headerStyle = settings.headerBackgroundImage
@@ -213,7 +214,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {defaultQuotationItems.map((item, index) => (
+                            {quotation.items.map((item, index) => (
                                 <TableRow key={item.id}>
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell className="font-medium">{item.description}</TableCell>
