@@ -15,6 +15,7 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const themeSchema = z.object({
+  appName: z.string().optional(),
   primaryColor: z.string(),
   backgroundColor: z.string(),
   accentColor: z.string(),
@@ -31,6 +32,7 @@ const fonts = [
 ];
 
 const defaultTheme = {
+  appName: 'QuoteCraft ELV',
   primaryColor: '231 48% 48%',
   backgroundColor: '220 13% 95%',
   accentColor: '174 100% 29%',
@@ -60,6 +62,11 @@ export function ThemeForm() {
 
   const applyTheme = (theme: ThemeFormValues) => {
     const root = document.documentElement;
+
+    if (theme.appName) {
+      document.title = theme.appName;
+    }
+    
     root.style.setProperty('--primary', theme.primaryColor);
     root.style.setProperty('--background', theme.backgroundColor);
     root.style.setProperty('--accent', theme.accentColor);
@@ -118,6 +125,20 @@ export function ThemeForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <FormField
+            control={form.control}
+            name="appName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Application Title</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="e.g., QuoteCraft ELV" />
+                </FormControl>
+                <FormDescription>This will be the title of the application in the browser tab.</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <FormField
             control={form.control}

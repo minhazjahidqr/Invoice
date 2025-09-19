@@ -26,7 +26,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -40,11 +40,22 @@ const settingsItem = { href: '/settings', label: 'Settings', icon: Settings };
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const [appName, setAppName] = useState('QuoteCraft ELV');
   // Force re-render on storage change to update logo
   const [, setTick] = React.useState(0);
   React.useEffect(() => {
-    const onStorage = () => setTick(t => t + 1);
+    const onStorage = () => {
+      setTick(t => t + 1);
+      const savedTheme = localStorage.getItem('app-theme');
+      if (savedTheme) {
+        const parsedTheme = JSON.parse(savedTheme);
+        if (parsedTheme.appName) {
+          setAppName(parsedTheme.appName);
+        }
+      }
+    };
     window.addEventListener('storage', onStorage);
+    onStorage(); // check on initial load
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
@@ -57,7 +68,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <Link href="/" className="flex items-center gap-2.5">
             <Icons.Logo className="w-7 h-7 text-primary" />
             <span className="font-headline text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-              QuoteCraft ELV
+              {appName}
             </span>
           </Link>
         </SidebarHeader>

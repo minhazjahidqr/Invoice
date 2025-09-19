@@ -23,8 +23,13 @@ export default function RootLayout({
             try {
               const theme = localStorage.getItem('app-theme');
               if (theme) {
-                const { primaryColor, backgroundColor, accentColor, font } = JSON.parse(theme);
+                const { appName, primaryColor, backgroundColor, accentColor, font } = JSON.parse(theme);
                 const root = document.documentElement;
+
+                if (appName) {
+                  document.title = appName;
+                }
+                
                 root.style.setProperty('--primary', primaryColor);
                 root.style.setProperty('--background', backgroundColor);
                 root.style.setProperty('--accent', accentColor);
