@@ -1,13 +1,23 @@
 import { AppLayout } from '@/components/app-layout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { ThemeForm } from './theme-form';
 
 export default function SettingsPage() {
   return (
     <AppLayout>
-      <div className="flex flex-col items-center justify-center h-full text-center">
-        <h1 className="font-headline text-3xl font-semibold">Settings</h1>
-        <p className="text-muted-foreground mt-2 max-w-md">
-          Customize your experience, manage your company profile, and set up integrations. This feature is currently under construction.
-        </p>
+       <div className="mx-auto grid max-w-4xl flex-1 auto-rows-max gap-4">
+        <h1 className="font-headline text-3xl font-semibold tracking-tight">Settings</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle>Theme Customization</CardTitle>
+            <CardDescription>
+              Customize the look and feel of your application. Changes are saved locally in your browser.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ThemeForm />
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );

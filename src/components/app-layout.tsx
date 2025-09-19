@@ -26,6 +26,7 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import React from 'react';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -39,6 +40,14 @@ const settingsItem = { href: '/settings', label: 'Settings', icon: Settings };
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  // Force re-render on storage change to update logo
+  const [, setTick] = React.useState(0);
+  React.useEffect(() => {
+    const onStorage = () => setTick(t => t + 1);
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
 
   return (

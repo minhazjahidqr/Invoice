@@ -43,13 +43,14 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                 <header className="grid grid-cols-2 gap-8 items-start mb-10">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                             {companyLogo ? (
+                             {companyLogo?.imageUrl ? (
                                 <Image 
                                     src={companyLogo.imageUrl}
                                     alt="Company Logo"
                                     width={40}
                                     height={40}
                                     data-ai-hint={companyLogo.imageHint}
+                                    className="object-contain"
                                 />
                              ) : (
                                 <Icons.Logo className="w-10 h-10 text-primary" />
