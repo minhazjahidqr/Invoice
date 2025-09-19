@@ -15,7 +15,9 @@ export default function ClientsPage() {
   
   const filteredClients = mockClients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase())
+    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    client.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -37,7 +39,7 @@ export default function ClientsPage() {
         <CardContent>
           <div className="mb-4">
             <Input
-              placeholder="Filter clients by name or email..."
+              placeholder="Filter clients..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
@@ -48,7 +50,8 @@ export default function ClientsPage() {
               <TableRow>
                 <TableHead>Client Name</TableHead>
                 <TableHead>Email</TableHead>
-                <TableHead className="hidden md:table-cell">Client ID</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead className="hidden md:table-cell">Address</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -59,7 +62,8 @@ export default function ClientsPage() {
                 <TableRow key={client.id}>
                   <TableCell className="font-medium">{client.name}</TableCell>
                   <TableCell>{client.email}</TableCell>
-                  <TableCell className="hidden text-muted-foreground md:table-cell">{client.id}</TableCell>
+                  <TableCell>{client.phone}</TableCell>
+                  <TableCell className="hidden text-muted-foreground md:table-cell">{client.address}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

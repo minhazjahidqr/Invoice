@@ -22,6 +22,8 @@ export type Client = {
   id: string;
   name: string;
   email: string;
+  phone: string;
+  address: string;
 }
 
 export type Project = {
@@ -31,9 +33,9 @@ export type Project = {
 }
 
 export const mockClients: Client[] = [
-  { id: 'cli-1', name: 'Innovate Corp', email: 'contact@innovatecorp.com' },
-  { id: 'cli-2', name: 'Quantum Solutions', email: 'hello@quantumsolutions.dev' },
-  { id: 'cli-3', name: 'Apex Industries', email: 'info@apexindustries.net' },
+  { id: 'cli-1', name: 'Innovate Corp', email: 'contact@innovatecorp.com', phone: '+1-202-555-0149', address: '123 Innovation Drive, Tech City' },
+  { id: 'cli-2', name: 'Quantum Solutions', email: 'hello@quantumsolutions.dev', phone: '+1-202-555-0128', address: '456 Quantum Way, Silicon Valley' },
+  { id: 'cli-3', name: 'Apex Industries', email: 'info@apexindustries.net', phone: '+1-202-555-0182', address: '789 Apex Lane, Industrial Park' },
 ];
 
 export const mockProjects: Project[] = [
