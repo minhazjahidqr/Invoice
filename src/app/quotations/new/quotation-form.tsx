@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus } from 'lucide-react';
+import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus, ImageOff } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
 import { defaultQuotationItems, type Client } from '@/lib/data';
@@ -261,7 +261,9 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
                   </TableRow>
                   </TableHeader>
                   <TableBody>
-                  {fields.map((field, index) => (
+                  {fields.map((field, index) => {
+                    const imageUrl = form.watch(`items.${index}.imageUrl`);
+                    return (
                       <TableRow key={field.id}>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>
@@ -272,13 +274,19 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
                       </TableCell>
                       <TableCell>
                           <div className="flex flex-col gap-2 items-center">
-                             <Image 
-                               src={form.watch(`items.${index}.imageUrl`) || 'https://picsum.photos/seed/placeholder/100/100'}
-                               alt={form.watch(`items.${index}.description`) || 'Item image'}
-                               width={64}
-                               height={64}
-                               className="rounded-md object-cover"
-                             />
+                            {imageUrl ? (
+                                <Image
+                                    src={imageUrl}
+                                    alt={form.watch(`items.${index}.description`) || 'Item image'}
+                                    width={64}
+                                    height={64}
+                                    className="rounded-md object-cover"
+                                />
+                            ) : (
+                                <div className="w-16 h-16 rounded-md bg-muted flex items-center justify-center">
+                                    <ImageOff className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                            )}
                              <FormField
                                 control={form.control}
                                 name={`items.${index}.imageUrl`}
@@ -287,7 +295,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
                                     <FormControl>
                                         <Label htmlFor={`item-image-${index}`} className="cursor-pointer inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
                                             <Upload className="h-3 w-3" />
-                                            <span>Upload</span>
+                                            <span>{imageUrl ? 'Change' : 'Upload'}</span>
                                         </Label>
                                     </FormControl>
                                     <Input id={`item-image-${index}`} type="file" className="sr-only" accept="image/*" onChange={(e) => handleImageUpload(e, index, `items.${index}.imageUrl`)} />
@@ -312,7 +320,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
                           </Button>
                       </TableCell>
                       </TableRow>
-                  ))}
+                  )})}
                   </TableBody>
               </Table>
               <Button
