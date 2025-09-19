@@ -2,8 +2,9 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/app-layout';
-import { getFromStorage, defaultQuotationItems, type Quotation, type Client } from '@/lib/data';
+import { getFromStorage, saveToStorage, defaultQuotationItems, type Quotation, type Client, type Invoice } from '@/lib/data';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -24,6 +25,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
   const companyLogo = PlaceHolderImages.find(img => img.id === 'company-logo');
   const quotationRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const router = useRouter();
   const [isDownloading, setIsDownloading] = useState(false);
   const [settings, setSettings] = useState<SettingsFormValues>(defaultSettings);
 
@@ -84,6 +86,37 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     }
   };
 
+  const handleConvertToInvoice = () => {
+    if (!quotation) return;
+
+    const existingInvoices = getFromStorage<Invoice[]>('invoices', []);
+    const newInvoiceId = `INV-${new Date().getFullYear()}-${String(existingInvoices.length + 1).padStart(3, '0')}`;
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
+
+    const newInvoice: Invoice = {
+        id: newInvoiceId,
+        quotationId: quotation.id,
+        clientId: quotation.clientId,
+        projectName: quotation.projectName,
+        date: new Date().toISOString(),
+        dueDate: dueDate.toISOString(),
+        total: quotation.total,
+        status: 'Draft',
+    };
+
+    const updatedInvoices = [newInvoice, ...existingInvoices];
+    saveToStorage('invoices', updatedInvoices);
+    window.dispatchEvent(new Event('storage'));
+
+    toast({
+        title: 'Invoice Created',
+        description: `Invoice ${newInvoiceId} has been created from Quotation ${quotation.id}.`,
+    });
+
+    router.push(`/invoices/${newInvoiceId}`);
+  };
+
   if (!quotation || !client) {
     return (
       <AppLayout>
@@ -118,7 +151,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                          PDF
                     </Button>
                     <Button variant="outline"><Share2 className="mr-2 h-4 w-4"/> Share</Button>
-                    <Button><FileCheck className="mr-2 h-4 w-4"/> Convert to Invoice</Button>
+                    <Button onClick={handleConvertToInvoice}><FileCheck className="mr-2 h-4 w-4"/> Convert to Invoice</Button>
                 </div>
             </div>
 
