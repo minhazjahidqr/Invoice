@@ -3,7 +3,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
-import { getFromStorage, defaultQuotationItems, type Invoice } from '@/lib/data';
+import { getFromStorage, defaultQuotationItems, type Invoice, type Client } from '@/lib/data';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -21,6 +21,7 @@ import { defaultSettings, type SettingsFormValues } from '@/app/settings/setting
 
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
+  const [client, setClient] = useState<Client | undefined>(undefined);
   const companyLogo = PlaceHolderImages.find(img => img.id === 'company-logo');
   const invoiceRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -36,6 +37,12 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     const invoices = getFromStorage<Invoice[]>('invoices', []);
     const foundInvoice = invoices.find(inv => inv.id === params.id);
     setInvoice(foundInvoice);
+
+     if (foundInvoice) {
+      const clients = getFromStorage<Client[]>('clients', []);
+      const foundClient = clients.find(c => c.id === foundInvoice.clientId);
+      setClient(foundClient);
+    }
 
   }, [params.id]);
 
@@ -78,7 +85,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     }
   };
 
-  if (!invoice) {
+  if (!invoice || !client) {
     return (
       <AppLayout>
         <div className="text-center p-8">
@@ -150,7 +157,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
 
                 <section className="mb-10">
                     <h3 className="font-semibold mb-2">Bill To:</h3>
-                    <p className="font-medium">{invoice.client}</p>
+                    <p className="font-medium">{client.name}</p>
                     <p className="text-muted-foreground text-sm">Project: {invoice.projectName}</p>
                 </section>
                 

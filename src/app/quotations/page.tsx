@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Trash2 } from 'lucide-react';
-import { getFromStorage, saveToStorage, type Quotation, type Invoice } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Quotation, type Invoice, type Client } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -42,12 +42,14 @@ const statusVariant: { [key in Quotation['status']]: 'default' | 'secondary' | '
 
 export default function QuotationsPage() {
   const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
     const loadData = () => {
       setQuotations(getFromStorage('quotations', []));
+      setClients(getFromStorage('clients', []));
     };
     loadData();
     window.addEventListener('storage', loadData);
@@ -72,7 +74,7 @@ export default function QuotationsPage() {
   };
 
   const handleConvertToInvoice = (quotation: Quotation) => {
-    const existingInvoices = getFromStorage('invoices', []);
+    const existingInvoices = getFromStorage<Invoice[]>('invoices', []);
     const newInvoiceId = `INV-${new Date().getFullYear()}-${String(existingInvoices.length + 1).padStart(3, '0')}`;
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
@@ -80,7 +82,7 @@ export default function QuotationsPage() {
     const newInvoice: Invoice = {
         id: newInvoiceId,
         quotationId: quotation.id,
-        client: quotation.client,
+        clientId: quotation.clientId,
         projectName: quotation.projectName,
         date: new Date().toISOString(),
         dueDate: dueDate.toISOString(),
@@ -119,6 +121,12 @@ export default function QuotationsPage() {
         variant: 'destructive',
     });
   };
+  
+  const getClientName = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    return client ? client.name : 'Unknown Client';
+  }
+
 
   return (
     <AppLayout>
@@ -154,7 +162,7 @@ export default function QuotationsPage() {
                         {quotation.id}
                     </Link>
                   </TableCell>
-                  <TableCell className="font-medium">{quotation.client}</TableCell>
+                  <TableCell className="font-medium">{getClientName(quotation.clientId)}</TableCell>
                   <TableCell>{quotation.projectName}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     <Badge variant={statusVariant[quotation.status]}>

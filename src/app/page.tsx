@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Receipt, ArrowUpRight, MoreHorizontal, DollarSign } from 'lucide-react';
-import { getFromStorage, saveToStorage, type Quotation, type Invoice } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Quotation, type Invoice, type Client } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,6 +38,7 @@ const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 
 export default function DashboardPage() {
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const { toast } = useToast();
 
   const [date, setDate] = useState<DateRange | undefined>({
@@ -49,6 +50,7 @@ export default function DashboardPage() {
     const loadData = () => {
         setQuotations(getFromStorage('quotations', []));
         setInvoices(getFromStorage('invoices', []));
+        setClients(getFromStorage('clients', []));
     };
 
     loadData();
@@ -91,6 +93,13 @@ export default function DashboardPage() {
     });
   };
 
+  const getClientName = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    return client ? client.name : 'Unknown Client';
+  }
+
+  type ActivityItem = (Quotation | Invoice) & { type: 'Quotation' | 'Invoice' };
+
   const filteredInvoices = invoices.filter(invoice => {
       const invoiceDate = new Date(invoice.date);
       if (date?.from && date?.to) {
@@ -107,8 +116,12 @@ export default function DashboardPage() {
     return true;
   });
 
-  const recentActivity: (Quotation | Invoice)[] = [...filteredQuotations, ...filteredInvoices]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+  const recentActivity: ActivityItem[] = [
+    ...filteredQuotations.map(q => ({ ...q, type: 'Quotation' as const })),
+    ...filteredInvoices.map(i => ({ ...i, type: 'Invoice' as const }))
+  ]
+  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  .slice(0, 5);
   
   const totalRevenue = filteredInvoices.filter(i => i.status === 'Paid').reduce((acc, i) => acc + i.total, 0);
   const pendingAmount = filteredInvoices.filter(i => i.status === 'Sent' || i.status === 'Overdue' || i.status === 'Pending').reduce((acc, i) => acc + i.total, 0);
@@ -192,14 +205,13 @@ export default function DashboardPage() {
                   </TableHeader>
                   <TableBody>
                     {recentActivity.map((item) => {
-                      const isInvoice = 'quotationId' in item;
                       return (
-                        <TableRow key={`${isInvoice ? 'inv' : 'quo'}-${item.id}`}>
+                        <TableRow key={`${item.type}-${item.id}`}>
                           <TableCell>
-                            <div className="font-medium">{isInvoice ? 'Invoice' : 'Quotation'}</div>
-                            <div className="text-sm text-muted-foreground md:hidden">{item.client}</div>
+                            <div className="font-medium">{item.type}</div>
+                            <div className="text-sm text-muted-foreground md:hidden">{getClientName(item.clientId)}</div>
                           </TableCell>
-                          <TableCell className="hidden sm:table-cell">{item.client}</TableCell>
+                          <TableCell className="hidden sm:table-cell">{getClientName(item.clientId)}</TableCell>
                           <TableCell className="hidden sm:table-cell">
                             <Badge className="text-xs" variant={statusVariant[item.status]}>
                               {item.status}
@@ -217,7 +229,7 @@ export default function DashboardPage() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                {isInvoice ? (
+                                {item.type === 'Invoice' ? (
                                   <>
                                     <DropdownMenuItem asChild><Link href={`/invoices/${item.id}`}>View Details</Link></DropdownMenuItem>
                                     <DropdownMenuSeparator />

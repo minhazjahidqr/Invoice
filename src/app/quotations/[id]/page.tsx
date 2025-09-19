@@ -39,7 +39,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
 
     if (foundQuotation) {
       const clients = getFromStorage<Client[]>('clients', []);
-      const foundClient = clients.find(c => c.name === foundQuotation.client);
+      const foundClient = clients.find(c => c.id === foundQuotation.clientId);
       setClient(foundClient);
     }
     
@@ -84,7 +84,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     }
   };
 
-  if (!quotation) {
+  if (!quotation || !client) {
     return (
       <AppLayout>
         <div className="text-center p-8">
@@ -156,7 +156,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
 
                 <section className="mb-10">
                     <h3 className="font-semibold mb-2">To:</h3>
-                    <p className="font-medium">{quotation.client}</p>
+                    <p className="font-medium">{client.name}</p>
                     {client && (
                         <>
                             <p className="text-muted-foreground text-sm">{client.address}</p>

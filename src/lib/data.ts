@@ -1,7 +1,7 @@
 
 export type Quotation = {
   id: string;
-  client: string;
+  clientId: string;
   projectName: string;
   date: string;
   total: number;
@@ -11,7 +11,7 @@ export type Quotation = {
 export type Invoice = {
   id: string;
   quotationId: string;
-  client: string;
+  clientId: string;
   projectName: string;
   date: string;
   dueDate: string;
@@ -47,18 +47,18 @@ const initialMockProjects: Project[] = [
 ];
 
 const initialMockQuotations: Quotation[] = [
-  { id: 'Q-2024-001', client: 'Innovate Corp', projectName: 'Office Security Upgrade', date: '2024-07-15', total: 12500, status: 'Approved' },
-  { id: 'Q-2024-002', client: 'Quantum Solutions', projectName: 'New HQ Network Setup', date: '2024-07-18', total: 25000, status: 'Sent' },
-  { id: 'Q-2024-003', client: 'Apex Industries', projectName: 'Warehouse Surveillance System', date: '2024-07-20', total: 8500, status: 'Draft' },
-  { id: 'Q-2024-004', client: 'Innovate Corp', projectName: 'Retail Store Audio System', date: '2024-07-22', total: 4200, status: 'Rejected' },
-  { id: 'Q-2024-005', client: 'Quantum Solutions', projectName: 'Phase 2 Network Expansion', date: '2024-07-25', total: 18000, status: 'Sent' },
+  { id: 'Q-2024-001', clientId: 'cli-1', projectName: 'Office Security Upgrade', date: '2024-07-15', total: 12500, status: 'Approved' },
+  { id: 'Q-2024-002', clientId: 'cli-2', projectName: 'New HQ Network Setup', date: '2024-07-18', total: 25000, status: 'Sent' },
+  { id: 'Q-2024-003', clientId: 'cli-3', projectName: 'Warehouse Surveillance System', date: '2024-07-20', total: 8500, status: 'Draft' },
+  { id: 'Q-2024-004', clientId: 'cli-1', projectName: 'Retail Store Audio System', date: '2024-07-22', total: 4200, status: 'Rejected' },
+  { id: 'Q-2024-005', clientId: 'cli-2', projectName: 'Phase 2 Network Expansion', date: '2024-07-25', total: 18000, status: 'Sent' },
 ];
 
 const initialMockInvoices: Invoice[] = [
-  { id: 'INV-2024-001', quotationId: 'Q-2024-001', client: 'Innovate Corp', projectName: 'Office Security Upgrade', date: '2024-07-20', dueDate: '2024-08-19', total: 12500, status: 'Sent' },
-  { id: 'INV-2024-002', quotationId: 'Q-2023-015', client: 'Old Client LLC', projectName: 'Legacy System Maintenance', date: '2024-06-10', dueDate: '2024-07-10', total: 1500, status: 'Paid' },
-  { id: 'INV-2024-003', quotationId: 'Q-2024-000', client: 'Another Company', projectName: 'Fire Alarm Inspection', date: '2024-05-01', dueDate: '2024-05-31', total: 800, status: 'Overdue' },
-  { id: 'INV-2024-004', quotationId: 'Q-2023-018', client: 'Ongoing Partner', projectName: 'Q2 Support Contract', date: '2024-07-01', dueDate: '2024-07-31', total: 3000, status: 'Paid' },
+  { id: 'INV-2024-001', quotationId: 'Q-2024-001', clientId: 'cli-1', projectName: 'Office Security Upgrade', date: '2024-07-20', dueDate: '2024-08-19', total: 12500, status: 'Sent' },
+  { id: 'INV-2024-002', quotationId: 'Q-2023-015', clientId: 'cli-3', projectName: 'Legacy System Maintenance', date: '2024-06-10', dueDate: '2024-07-10', total: 1500, status: 'Paid' },
+  { id: 'INV-2024-003', quotationId: 'Q-2024-000', clientId: 'cli-2', projectName: 'Fire Alarm Inspection', date: '2024-05-01', dueDate: '2024-05-31', total: 800, status: 'Overdue' },
+  { id: 'INV-2024-004', quotationId: 'Q-2023-018', clientId: 'cli-1', projectName: 'Q2 Support Contract', date: '2024-07-01', dueDate: '2024-07-31', total: 3000, status: 'Paid' },
 ];
 
 export function getFromStorage<T>(key: string, fallback: T): T {
@@ -87,10 +87,10 @@ export function saveToStorage<T>(key: string, data: T) {
 
 // Initialize storage if it's empty
 if (typeof window !== 'undefined') {
-    getFromStorage('clients', initialMockClients);
-    getFromStorage('projects', initialMockProjects);
-    getFromStorage('quotations', initialMockQuotations);
-    getFromStorage('invoices', initialMockInvoices);
+    if (!localStorage.getItem('clients')) saveToStorage('clients', initialMockClients);
+    if (!localStorage.getItem('projects')) saveToStorage('projects', initialMockProjects);
+    if (!localStorage.getItem('quotations')) saveToStorage('quotations', initialMockQuotations);
+    if (!localStorage.getItem('invoices')) saveToStorage('invoices', initialMockInvoices);
 }
 
 

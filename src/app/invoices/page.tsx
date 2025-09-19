@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
-import { getFromStorage, saveToStorage, type Invoice } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Invoice, type Client } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -30,10 +30,12 @@ const statusVariant: { [key in Invoice['status']]: 'default' | 'secondary' | 'de
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
     setInvoices(getFromStorage('invoices', []));
+    setClients(getFromStorage('clients', []));
   }, []);
 
   const updateInvoices = (newInvoices: Invoice[]) => {
@@ -52,6 +54,11 @@ export default function InvoicesPage() {
       description: `Invoice ${invoiceId} has been marked as ${newStatus}.`
     });
   };
+
+  const getClientName = (clientId: string) => {
+    const client = clients.find(c => c.id === clientId);
+    return client ? client.name : 'Unknown Client';
+  }
 
   return (
     <AppLayout>
@@ -86,7 +93,7 @@ export default function InvoicesPage() {
                         {invoice.id}
                     </Link>
                   </TableCell>
-                  <TableCell className="font-medium">{invoice.client}</TableCell>
+                  <TableCell className="font-medium">{getClientName(invoice.clientId)}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     <Badge variant={statusVariant[invoice.status]}>
                       {invoice.status}

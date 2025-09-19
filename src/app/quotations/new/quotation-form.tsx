@@ -145,11 +145,11 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     const tax = subtotal * 0.05;
     const total = subtotal + tax;
     
-    const existingQuotations = getFromStorage('quotations', []);
+    const existingQuotations = getFromStorage<Quotation[]>('quotations', []);
 
     const newQuotation: Quotation = {
         id: `Q-${new Date().getFullYear()}-${String(existingQuotations.length + 1).padStart(3, '0')}`,
-        client: client.name,
+        clientId: client.id,
         projectName: 'N/A',
         date: new Date().toISOString(),
         total: total,
@@ -399,4 +399,3 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     </Dialog>
   );
 }
-
