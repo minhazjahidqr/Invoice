@@ -130,7 +130,7 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="grid gap-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="font-headline text-3xl font-semibold tracking-tight">Dashboard</h1>
           <DateRangePicker date={date} onDateChange={setDate} />
         </div>
@@ -198,7 +198,7 @@ export default function DashboardPage() {
                       <TableHead>Type</TableHead>
                       <TableHead>Client</TableHead>
                       <TableHead className="hidden sm:table-cell">Status</TableHead>
-                      <TableHead className="hidden sm:table-cell">Date</TableHead>
+                      <TableHead className="hidden md:table-cell">Date</TableHead>
                       <TableHead className="text-right">Amount</TableHead>
                       <TableHead><span className="sr-only">Actions</span></TableHead>
                     </TableRow>
@@ -217,7 +217,7 @@ export default function DashboardPage() {
                               {item.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="hidden sm:table-cell">{new Date(item.date).toLocaleDateString()}</TableCell>
+                          <TableCell className="hidden md:table-cell">{new Date(item.date).toLocaleDateString()}</TableCell>
                           <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
                           <TableCell>
                             <DropdownMenu>

@@ -69,7 +69,7 @@ export default function ProjectsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
                 <CardTitle className="font-headline">Projects</CardTitle>
                 <CardDescription>
@@ -77,7 +77,7 @@ export default function ProjectsPage() {
                 </CardDescription>
               </div>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="w-full md:w-auto">
                   <PlusCircle className="mr-2 h-4 w-4" /> Add New Project
                 </Button>
               </DialogTrigger>

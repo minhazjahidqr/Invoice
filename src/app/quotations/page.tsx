@@ -144,9 +144,9 @@ export default function QuotationsPage() {
                   ID
                 </TableHead>
                 <TableHead>Client</TableHead>
-                <TableHead>Project</TableHead>
+                <TableHead className="hidden md:table-cell">Project</TableHead>
                 <TableHead className="hidden md:table-cell">Status</TableHead>
-                <TableHead className="hidden md:table-cell">Date</TableHead>
+                <TableHead className="hidden lg:table-cell">Date</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -162,13 +162,13 @@ export default function QuotationsPage() {
                     </Link>
                   </TableCell>
                   <TableCell className="font-medium">{getClientName(quotation.clientId)}</TableCell>
-                  <TableCell>{quotation.projectName}</TableCell>
+                  <TableCell className="hidden md:table-cell">{quotation.projectName}</TableCell>
                   <TableCell className="hidden md:table-cell">
                     <Badge variant={statusVariant[quotation.status]}>
                       {quotation.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell className="hidden lg:table-cell">
                     {new Date(quotation.date).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">{formatCurrency(quotation.total)}</TableCell>

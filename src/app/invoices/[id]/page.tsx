@@ -128,9 +128,9 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     <AppLayout>
         <Dialog open={isItemFormOpen} onOpenChange={setIsItemFormOpen}>
             <div className="max-w-4xl mx-auto">
-                <div className="flex items-center justify-between mb-4">
-                    <h1 className="font-headline text-2xl font-bold">Invoice {invoice.id}</h1>
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
+                    <h1 className="font-headline text-2xl font-bold shrink-0">Invoice {invoice.id}</h1>
+                    <div className="flex items-center gap-2 w-full justify-start md:justify-end flex-wrap">
                         <Button variant="outline" onClick={handleDownloadPdf} disabled={isDownloading}>
                             {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4"/>}
                             PDF
@@ -140,8 +140,8 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                     </div>
                 </div>
 
-                <Card className="p-8" ref={invoiceRef}>
-                    <header className="relative grid grid-cols-2 gap-8 items-start mb-10 rounded-lg overflow-hidden p-6" style={headerStyle}>
+                <Card className="p-4 sm:p-8" ref={invoiceRef}>
+                    <header className="relative grid grid-cols-1 sm:grid-cols-2 gap-8 items-start mb-10 rounded-lg overflow-hidden p-6" style={headerStyle}>
                         {settings.headerBackgroundImage && <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>}
                         <div className="relative z-10">
                             <div className="flex items-center gap-3 mb-2">
@@ -162,7 +162,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                             <p className="text-sm text-gray-200 shadow-sm whitespace-pre-line">{settings.companyAddress}</p>
                             <p className="text-sm text-gray-200 shadow-sm">{settings.companyContact}</p>
                         </div>
-                        <div className="relative z-10 text-right">
+                        <div className="relative z-10 text-left sm:text-right">
                             <h1 className="text-4xl font-bold tracking-tight mb-2 text-white" style={{color: `hsl(${settings.headerTitleColor})`}}>INVOICE</h1>
                             <div className="text-sm text-gray-200">
                                 <p><strong>Invoice #:</strong> {invoice.id}</p>
@@ -187,46 +187,51 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                                 </Button>
                             </DialogTrigger>
                         </div>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-[50px]">SL</TableHead>
-                                    <TableHead>Discription</TableHead>
-                                    <TableHead>Brand Name</TableHead>
-                                    <TableHead className="w-[80px]">Image</TableHead>
-                                    <TableHead className="text-center">Quantity</TableHead>
-                                    <TableHead className="text-right">Unit Price</TableHead>
-                                    <TableHead className="text-right">Total</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {(invoice.items || []).map((item, index) => (
-                                    <TableRow key={item.id}>
-                                        <TableCell>{index + 1}</TableCell>
-                                        <TableCell className="font-medium">{item.description}</TableCell>
-                                        <TableCell>{item.brandName}</TableCell>
-                                        <TableCell>
-                                            <Image
-                                            src={item.imageUrl ?? 'https://picsum.photos/seed/placeholder/64/64'}
-                                            alt={item.description}
-                                            width={64}
-                                            height={64}
-                                            className="rounded-md object-cover"
-                                            data-ai-hint={item.imageHint}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="text-center">{item.quantity}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+                         <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead className="w-[50px]">SL</TableHead>
+                                        <TableHead>Discription</TableHead>
+                                        <TableHead className="hidden sm:table-cell">Brand Name</TableHead>
+                                        <TableHead className="w-[80px] hidden sm:table-cell">Image</TableHead>
+                                        <TableHead className="text-center">Quantity</TableHead>
+                                        <TableHead className="text-right">Unit Price</TableHead>
+                                        <TableHead className="text-right">Total</TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {(invoice.items || []).map((item, index) => (
+                                        <TableRow key={item.id}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell className="font-medium">
+                                                {item.description}
+                                                <div className="text-muted-foreground text-xs sm:hidden mt-1">{item.brandName}</div>
+                                            </TableCell>
+                                            <TableCell className="hidden sm:table-cell">{item.brandName}</TableCell>
+                                            <TableCell className="hidden sm:table-cell">
+                                                <Image
+                                                src={item.imageUrl ?? 'https://picsum.photos/seed/placeholder/64/64'}
+                                                alt={item.description}
+                                                width={64}
+                                                height={64}
+                                                className="rounded-md object-cover"
+                                                data-ai-hint={item.imageHint}
+                                                />
+                                            </TableCell>
+                                            <TableCell className="text-center">{item.quantity}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                         </div>
                     </section>
 
                     <Separator className="my-8" />
 
-                    <section className="grid grid-cols-2 gap-8">
+                    <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div>
                             <h3 className="font-semibold mb-2">Payment Details</h3>
                             <div className="text-sm text-muted-foreground whitespace-pre-line">

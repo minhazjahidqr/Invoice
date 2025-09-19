@@ -90,14 +90,14 @@ export default function ClientsPage() {
       }}>
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
                 <CardTitle className="font-headline">Clients</CardTitle>
                 <CardDescription>
                   View and manage your client information.
                 </CardDescription>
               </div>
-              <Button onClick={handleAddNewClick}>
+              <Button onClick={handleAddNewClick} className="w-full md:w-auto">
                 <UserPlus className="mr-2 h-4 w-4" /> Add New Client
               </Button>
             </div>
@@ -115,9 +115,8 @@ export default function ClientsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Client Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead className="hidden md:table-cell">Address</TableHead>
+                  <TableHead className="hidden sm:table-cell">Email</TableHead>
+                  <TableHead className="hidden md:table-cell">Phone</TableHead>
                   <TableHead>
                     <span className="sr-only">Actions</span>
                   </TableHead>
@@ -126,10 +125,12 @@ export default function ClientsPage() {
               <TableBody>
                 {filteredClients.map((client) => (
                   <TableRow key={client.id}>
-                    <TableCell className="font-medium">{client.name}</TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.phone}</TableCell>
-                    <TableCell className="hidden text-muted-foreground md:table-cell">{client.address}</TableCell>
+                    <TableCell className="font-medium">
+                      <div>{client.name}</div>
+                      <div className="text-muted-foreground text-sm sm:hidden">{client.email}</div>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">{client.email}</TableCell>
+                    <TableCell className="hidden md:table-cell">{client.phone}</TableCell>
                     <TableCell>
                        <AlertDialog>
                           <DropdownMenu>
@@ -141,7 +142,6 @@ export default function ClientsPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
                               {client.address && (
                                 <DropdownMenuItem asChild>
                                   <a 
