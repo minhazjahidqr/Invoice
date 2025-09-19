@@ -42,6 +42,7 @@ const settingsSchema = z.object({
   pageOrientation: z.enum(['portrait', 'landscape']),
   pageSize: z.enum(['a4', 'letter']),
   headerTitleColor: z.string().optional(),
+  headerCompanyNameColor: z.string().optional(),
   footerText: z.string().optional(),
   headerBackgroundImage: z.string().optional(),
   headerBackgroundSize: z.enum(['cover', 'contain', 'auto']),
@@ -74,6 +75,7 @@ export const defaultSettings: SettingsFormValues = {
   pageOrientation: 'portrait',
   pageSize: 'a4',
   headerTitleColor: '231 48% 48%',
+  headerCompanyNameColor: '0 0% 100%',
   footerText: 'Thank you for your business!',
   headerBackgroundImage: '',
   headerBackgroundSize: 'cover',
@@ -625,20 +627,36 @@ export function SettingsForm() {
                           </CardDescription>
                       </CardHeader>
                       <CardContent className="space-y-6">
-                          <FormField
-                              control={form.control}
-                              name="headerTitleColor"
-                              render={({ field }) => (
-                                  <FormItem>
-                                      <FormLabel>Document Title Color</FormLabel>
-                                      <FormControl>
-                                          <Input {...field} placeholder="e.g., 231 48% 48%" />
-                                      </FormControl>
-                                      <FormDescription>The color of the "QUOTATION" or "INVOICE" text. HSL format.</FormDescription>
-                                      <FormMessage />
-                                  </FormItem>
-                              )}
-                          />
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <FormField
+                                  control={form.control}
+                                  name="headerTitleColor"
+                                  render={({ field }) => (
+                                      <FormItem>
+                                          <FormLabel>Document Title Color</FormLabel>
+                                          <FormControl>
+                                              <Input {...field} placeholder="e.g., 231 48% 48%" />
+                                          </FormControl>
+                                          <FormDescription>The color of the "QUOTATION" or "INVOICE" text. HSL format.</FormDescription>
+                                          <FormMessage />
+                                      </FormItem>
+                                  )}
+                              />
+                               <FormField
+                                  control={form.control}
+                                  name="headerCompanyNameColor"
+                                  render={({ field }) => (
+                                      <FormItem>
+                                          <FormLabel>Company Name Color</FormLabel>
+                                          <FormControl>
+                                              <Input {...field} placeholder="e.g., 0 0% 100%" />
+                                          </FormControl>
+                                          <FormDescription>The color of the company name text in the header. HSL format.</FormDescription>
+                                          <FormMessage />
+                                      </FormItem>
+                                  )}
+                              />
+                          </div>
                           <div className="space-y-2">
                               <FormLabel>Header Background Image</FormLabel>
                               <div className="flex items-center gap-4">

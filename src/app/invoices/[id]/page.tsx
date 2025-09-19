@@ -33,7 +33,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     const onStorageChange = () => {
       const savedSettings = localStorage.getItem('app-settings');
       if (savedSettings) {
-        setSettings(JSON.parse(savedSettings));
+        setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) });
       } else {
         setSettings(defaultSettings);
       }
@@ -164,7 +164,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                                 ) : (
                                     <Icons.Logo className="w-10 h-10 text-primary" />
                                 )}
-                                <h2 className="font-headline text-2xl font-bold text-white shadow-md">{settings.companyName}</h2>
+                                <h2 className="font-headline text-2xl font-bold shadow-md" style={{color: `hsl(${settings.headerCompanyNameColor})`}}>{settings.companyName}</h2>
                             </div>
                             <p className="text-sm text-gray-200 shadow-sm whitespace-pre-line">{settings.companyAddress}</p>
                             <p className="text-sm text-gray-200 shadow-sm">{settings.companyContact}</p>
