@@ -162,8 +162,8 @@ export function SettingsForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <div className="flex justify-start gap-2 sticky top-16 bg-background/80 backdrop-blur-sm p-4 -m-4 z-10">
-          <Button type="submit">Save and Apply Settings</Button>
+        <div className="flex justify-start gap-2 sticky top-[calc(theme(height.14)+1px)] bg-background/80 backdrop-blur-sm p-4 -m-4 z-10">
+          <Button type="submit">Save Settings</Button>
           <Button type="button" variant="outline" onClick={onReset}>Reset to Default</Button>
         </div>
 

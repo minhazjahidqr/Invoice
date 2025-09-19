@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { mockQuotations, defaultQuotationItems, mockClients } from '@/lib/data';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
@@ -16,8 +16,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '@/hooks/use-toast';
-import React from 'react';
-
+import { defaultSettings, type SettingsFormValues } from '@/app/settings/settings-form';
 
 export default function QuotationDetailPage({ params }: { params: { id: string } }) {
   const quotation = mockQuotations.find(q => q.id === params.id);
@@ -25,7 +24,15 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
   const companyLogo = PlaceHolderImages.find(img => img.id === 'company-logo');
   const quotationRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const [isDownloading, setIsDownloading] = React.useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [settings, setSettings] = useState<SettingsFormValues>(defaultSettings);
+
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('app-settings');
+    if (savedSettings) {
+      setSettings(JSON.parse(savedSettings));
+    }
+  }, []);
 
   const handleDownloadPdf = async () => {
     const element = quotationRef.current;
@@ -106,10 +113,10 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                              ) : (
                                 <Icons.Logo className="w-10 h-10 text-primary" />
                              )}
-                             <h2 className="font-headline text-2xl font-bold">QuoteCraft ELV</h2>
+                             <h2 className="font-headline text-2xl font-bold">{settings.companyName}</h2>
                         </div>
-                        <p className="text-muted-foreground text-sm">123 Tech Avenue, Silicon Valley, CA 94043</p>
-                        <p className="text-muted-foreground text-sm">contact@quotecraft.dev</p>
+                        <p className="text-muted-foreground text-sm whitespace-pre-line">{settings.companyAddress}</p>
+                        <p className="text-muted-foreground text-sm">{settings.companyContact}</p>
                     </div>
                     <div className="text-right">
                         <h1 className="text-4xl font-bold text-primary tracking-tight mb-2">QUOTATION</h1>
@@ -176,11 +183,9 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                 <section className="grid grid-cols-2 gap-8">
                     <div>
                         <h3 className="font-semibold mb-2">Terms & Conditions</h3>
-                        <ul className="text-xs text-muted-foreground list-disc list-inside space-y-1">
-                            <li>Payment: 50% advance, 50% on completion.</li>
-                            <li>Validity: This quotation is valid for 30 days.</li>
-                            <li>Warranty: 1-year standard warranty on hardware.</li>
-                        </ul>
+                        <div className="text-xs text-muted-foreground space-y-1 whitespace-pre-line">
+                            {settings.quotationTerms}
+                        </div>
                     </div>
                      <div className="space-y-2 text-right">
                         <div className="flex justify-between">

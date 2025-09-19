@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -46,11 +47,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     const onStorage = () => {
       setTick(t => t + 1);
-      const savedTheme = localStorage.getItem('app-theme');
-      if (savedTheme) {
-        const parsedTheme = JSON.parse(savedTheme);
-        if (parsedTheme.appName) {
-          setAppName(parsedTheme.appName);
+      const savedSettings = localStorage.getItem('app-settings');
+      if (savedSettings) {
+        const parsedSettings = JSON.parse(savedSettings);
+        if (parsedSettings.appName) {
+          setAppName(parsedSettings.appName);
         }
       }
     };

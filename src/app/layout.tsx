@@ -1,3 +1,4 @@
+
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
@@ -21,7 +22,7 @@ export default function RootLayout({
         
         <script dangerouslySetInnerHTML={{ __html: `
             try {
-              const theme = localStorage.getItem('app-theme');
+              const theme = localStorage.getItem('app-settings');
               if (theme) {
                 const { appName, primaryColor, backgroundColor, accentColor, font, themeMode } = JSON.parse(theme);
                 const root = document.documentElement;
