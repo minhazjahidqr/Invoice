@@ -60,7 +60,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
 - 8-Channel DVR
 - 4x Dome Cameras
 - 1TB Hard Drive`,
-      items: defaultQuotationItems.map(({id, total, imageHint, ...item}) => ({...item, imageUrl: ''})),
+      items: defaultQuotationItems.map(({id, total, imageHint, ...item}) => ({...item, imageUrl: item.imageUrl || ''})),
     },
   });
 
