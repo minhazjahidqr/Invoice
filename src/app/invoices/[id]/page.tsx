@@ -201,7 +201,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {invoice.items.map((item, index) => (
+                                {(invoice.items || []).map((item, index) => (
                                     <TableRow key={item.id}>
                                         <TableCell>{index + 1}</TableCell>
                                         <TableCell className="font-medium">{item.description}</TableCell>

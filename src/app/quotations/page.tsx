@@ -88,6 +88,7 @@ export default function QuotationsPage() {
         dueDate: dueDate.toISOString(),
         total: quotation.total,
         status: 'Draft',
+        items: quotation.items || [],
     };
 
     const updatedInvoices = [newInvoice, ...existingInvoices];
@@ -103,8 +104,6 @@ export default function QuotationsPage() {
   };
   
   const handleDownloadPdf = (quotationId: string) => {
-    // In a real app, you would trigger a server-side PDF generation and download.
-    // For this demo, we'll just navigate to the detail page where download is available.
     router.push(`/quotations/${quotationId}`);
   };
 

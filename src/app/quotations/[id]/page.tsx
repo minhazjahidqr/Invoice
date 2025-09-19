@@ -103,7 +103,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
         dueDate: dueDate.toISOString(),
         total: quotation.total,
         status: 'Draft',
-        items: quotation.items,
+        items: quotation.items || [],
     };
 
     const updatedInvoices = [newInvoice, ...existingInvoices];
@@ -214,7 +214,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {quotation.items.map((item, index) => (
+                            {(quotation.items || []).map((item, index) => (
                                 <TableRow key={item.id}>
                                     <TableCell>{index + 1}</TableCell>
                                     <TableCell className="font-medium">{item.description}</TableCell>
