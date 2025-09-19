@@ -12,16 +12,16 @@ import type { Client } from '@/lib/data';
 const formSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, 'Name must be at least 2 characters.'),
-  email: z.string().email('Invalid email address.').or(z.literal('')),
+  email: z.string().email('Invalid email address.').or(z.literal('')).optional(),
   phone: z.string().min(5, 'Phone number is too short.'),
-  address: z.string(),
+  address: z.string().optional(),
 });
 
 type ClientFormValues = z.infer<typeof formSchema>;
 
 interface ClientFormProps {
   client?: Client;
-  onSave: (client: Client) => void;
+  onSave: (client: ClientFormValues & { id?: string }) => void;
 }
 
 export function ClientForm({ client, onSave }: ClientFormProps) {
@@ -36,8 +36,7 @@ export function ClientForm({ client, onSave }: ClientFormProps) {
   });
 
   function onSubmit(data: ClientFormValues) {
-    const newId = client?.id || `cli-${Date.now()}`;
-    onSave({ ...data, id: newId });
+    onSave({ ...data, id: client?.id });
   }
 
   return (
@@ -102,5 +101,3 @@ export function ClientForm({ client, onSave }: ClientFormProps) {
     </Form>
   );
 }
-
-    

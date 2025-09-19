@@ -7,29 +7,62 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { mockClients, type Client } from '@/lib/data';
-import { MoreHorizontal, UserPlus, MapPin } from 'lucide-react';
+import { MoreHorizontal, UserPlus, MapPin, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ClientForm } from './client-form';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ClientsPage() {
+  const [clients, setClients] = useState<Client[]>(mockClients);
   const [searchTerm, setSearchTerm] = useState('');
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [editingClient, setEditingClient] = useState<Client | undefined>(undefined);
   const { toast } = useToast();
 
-  const handleClientSave = (client: Client) => {
-    // In a real app, you would handle saving the data to your backend
-    console.log('Saving client:', client);
+  const handleClientSave = (clientToSave: Client) => {
+    let message = '';
+    if (clientToSave.id && clients.some(c => c.id === clientToSave.id)) {
+      setClients(clients.map(c => c.id === clientToSave.id ? clientToSave : c));
+      message = `The details for ${clientToSave.name} have been updated.`;
+    } else {
+      const newClient = { ...clientToSave, id: `cli-${Date.now()}` };
+      setClients([newClient, ...clients]);
+      message = `Client ${newClient.name} has been added.`;
+    }
     toast({
       title: 'Client Saved',
-      description: `The details for ${client.name} have been saved.`
+      description: message,
     });
-    setDialogOpen(false);
+    setFormDialogOpen(false);
+    setEditingClient(undefined);
   };
   
-  const filteredClients = mockClients.filter(client =>
+  const handleDeleteClient = (clientId: string) => {
+    const clientToDelete = clients.find(c => c.id === clientId);
+    if (!clientToDelete) return;
+
+    setClients(clients.filter(c => c.id !== clientId));
+    toast({
+      title: 'Client Deleted',
+      description: `The client ${clientToDelete.name} has been deleted.`,
+      variant: 'destructive',
+    });
+  };
+
+  const handleEditClick = (client: Client) => {
+    setEditingClient(client);
+    setFormDialogOpen(true);
+  };
+  
+  const handleAddNewClick = () => {
+    setEditingClient(undefined);
+    setFormDialogOpen(true);
+  };
+
+  const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
     client.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -38,7 +71,10 @@ export default function ClientsPage() {
 
   return (
     <AppLayout>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={formDialogOpen} onOpenChange={(isOpen) => {
+        setFormDialogOpen(isOpen);
+        if (!isOpen) setEditingClient(undefined);
+      }}>
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -48,11 +84,9 @@ export default function ClientsPage() {
                   View and manage your client information.
                 </CardDescription>
               </div>
-              <DialogTrigger asChild>
-                <Button>
-                  <UserPlus className="mr-2 h-4 w-4" /> Add New Client
-                </Button>
-              </DialogTrigger>
+              <Button onClick={handleAddNewClick}>
+                <UserPlus className="mr-2 h-4 w-4" /> Add New Client
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -84,36 +118,59 @@ export default function ClientsPage() {
                     <TableCell>{client.phone}</TableCell>
                     <TableCell className="hidden text-muted-foreground md:table-cell">{client.address}</TableCell>
                     <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
-                          {client.address && (
-                            <DropdownMenuItem asChild>
-                              <a 
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="flex items-center"
-                              >
-                                <MapPin className="mr-2 h-4 w-4"/>
-                                View on Map
-                              </a>
-                            </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                       <AlertDialog>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem>View Details</DropdownMenuItem>
+                              {client.address && (
+                                <DropdownMenuItem asChild>
+                                  <a 
+                                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="flex items-center"
+                                  >
+                                    <MapPin className="mr-2 h-4 w-4"/>
+                                    View on Map
+                                  </a>
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleEditClick(client)}>
+                                <Pencil className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the client
+                                &quot;{client.name}&quot; and all associated data.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteClient(client.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                       </AlertDialog>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -128,12 +185,15 @@ export default function ClientsPage() {
         </Card>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add New Client</DialogTitle>
+            <DialogTitle>{editingClient ? 'Edit Client' : 'Add New Client'}</DialogTitle>
             <DialogDescription>
-              Fill in the details below to create a new client.
+              {editingClient 
+                ? `Update the details for ${editingClient.name}.`
+                : 'Fill in the details below to create a new client.'
+              }
             </DialogDescription>
           </DialogHeader>
-          <ClientForm onSave={handleClientSave} />
+          <ClientForm client={editingClient} onSave={handleClientSave} />
         </DialogContent>
       </Dialog>
     </AppLayout>
