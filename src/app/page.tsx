@@ -7,7 +7,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, FileText, Receipt, ArrowUpRight, MoreHorizontal } from 'lucide-react';
+import { FileText, Receipt, ArrowUpRight, MoreHorizontal } from 'lucide-react';
 import { mockInvoices as initialInvoices, mockQuotations as initialQuotations, type Quotation, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
@@ -79,7 +79,28 @@ export default function DashboardPage() {
                 <CardTitle className="text-sm font-medium">
                   Total Revenue
                 </CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-4 w-4 text-muted-foreground"
+                >
+                  <text
+                    x="50%"
+                    y="50%"
+                    dominantBaseline="middle"
+                    textAnchor="middle"
+                    fontSize="12"
+                    fontWeight="bold"
+                    fill="currentColor"
+                  >
+                    QAR
+                  </text>
+                </svg>
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
