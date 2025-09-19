@@ -29,7 +29,7 @@ function saveStoredUsers(users: User[]) {
 // Initialize with a default user if none exist
 if (typeof window !== 'undefined' && !localStorage.getItem(USERS_STORAGE_KEY)) {
     const defaultUsers: User[] = [
-        { id: 'user-1', name: 'minhaz', email: 'minhaz', password: 'Admin' },
+        { id: 'user-1', name: 'admin', email: 'admin', password: 'admin' },
     ];
     saveStoredUsers(defaultUsers);
 }

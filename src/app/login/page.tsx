@@ -13,8 +13,8 @@ import { login } from '@/lib/auth';
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [email, setEmail] = useState('minhaz');
-  const [password, setPassword] = useState('Admin');
+  const [email, setEmail] = useState('admin');
+  const [password, setPassword] = useState('admin');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -53,7 +53,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="text"
-                placeholder="minhaz"
+                placeholder="admin"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
