@@ -7,7 +7,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
 import { getFromStorage, saveToStorage, type Invoice, type Client } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
@@ -16,9 +16,30 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from '@/hooks/use-toast';
+import { InvoiceForm } from './invoice-form';
+import { useRouter } from 'next/navigation';
 
 const statusVariant: { [key in Invoice['status']]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   Paid: 'default',
@@ -32,10 +53,18 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [editingInvoice, setEditingInvoice] = useState<Invoice | undefined>(undefined);
 
   useEffect(() => {
-    setInvoices(getFromStorage('invoices', []));
-    setClients(getFromStorage('clients', []));
+    const loadData = () => {
+      setInvoices(getFromStorage('invoices', []));
+      setClients(getFromStorage('clients', []));
+    };
+    loadData();
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
   }, []);
 
   const updateInvoices = (newInvoices: Invoice[]) => {
@@ -43,7 +72,38 @@ export default function InvoicesPage() {
     saveToStorage('invoices', newInvoices);
     window.dispatchEvent(new Event('storage'));
   }
+  
+  const handleInvoiceSave = (invoiceToSave: Invoice) => {
+    let message = '';
+    const newInvoices = invoices.map(inv => inv.id === invoiceToSave.id ? invoiceToSave : inv);
+    message = `Invoice ${invoiceToSave.id} has been updated.`;
+    
+    updateInvoices(newInvoices);
+    toast({
+      title: 'Invoice Saved',
+      description: message,
+    });
+    setFormDialogOpen(false);
+    setEditingInvoice(undefined);
+  };
 
+  const handleEditClick = (invoice: Invoice) => {
+    setEditingInvoice(invoice);
+    setFormDialogOpen(true);
+  };
+
+  const handleDeleteInvoice = (invoiceId: string) => {
+    const invoiceToDelete = invoices.find(inv => inv.id === invoiceId);
+    if (!invoiceToDelete) return;
+    const newInvoices = invoices.filter(inv => inv.id !== invoiceId);
+    updateInvoices(newInvoices);
+    toast({
+      title: 'Invoice Deleted',
+      description: `Invoice ${invoiceToDelete.id} has been deleted.`,
+      variant: 'destructive',
+    });
+  }
+  
   const handleStatusChange = (invoiceId: string, newStatus: Invoice['status']) => {
     const newInvoices = invoices.map(inv => 
       inv.id === invoiceId ? { ...inv, status: newStatus } : inv
@@ -54,6 +114,10 @@ export default function InvoicesPage() {
       description: `Invoice ${invoiceId} has been marked as ${newStatus}.`
     });
   };
+  
+  const handleDownloadPdf = (invoiceId: string) => {
+    router.push(`/invoices/${invoiceId}`);
+  };
 
   const getClientName = (clientId: string) => {
     const client = clients.find(c => c.id === clientId);
@@ -62,78 +126,122 @@ export default function InvoicesPage() {
 
   return (
     <AppLayout>
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-headline">Invoices</CardTitle>
-          <CardDescription>
-            Manage your invoices and track payments.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">
-                  ID
-                </TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead className="hidden md:table-cell">Status</TableHead>
-                <TableHead className="hidden md:table-cell">Due Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {invoices.map((invoice) => (
-                <TableRow key={invoice.id}>
-                  <TableCell className="hidden font-medium sm:table-cell">
-                     <Link href={`/invoices/${invoice.id}`} className="hover:underline">
-                        {invoice.id}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="font-medium">{getClientName(invoice.clientId)}</TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <Badge variant={statusVariant[invoice.status]}>
-                      {invoice.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    {new Date(invoice.dueDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild><Link href={`/invoices/${invoice.id}`}>View Details</Link></DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'Paid')}>Mark as Paid</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'Pending')}>Mark as Pending</DropdownMenuItem>
-                        <DropdownMenuItem>Download PDF</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+      <Dialog open={formDialogOpen} onOpenChange={(isOpen) => {
+        setFormDialogOpen(isOpen);
+        if (!isOpen) setEditingInvoice(undefined);
+      }}>
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-headline">Invoices</CardTitle>
+            <CardDescription>
+              Manage your invoices and track payments.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="hidden w-[100px] sm:table-cell">
+                    ID
+                  </TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead className="hidden md:table-cell">Status</TableHead>
+                  <TableHead className="hidden md:table-cell">Due Date</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-        <CardFooter>
-          <div className="text-xs text-muted-foreground">
-            Showing <strong>1-{invoices.length}</strong> of <strong>{invoices.length}</strong> invoices
-          </div>
-        </CardFooter>
-      </Card>
+              </TableHeader>
+              <TableBody>
+                {invoices.map((invoice) => (
+                  <TableRow key={invoice.id}>
+                    <TableCell className="hidden font-medium sm:table-cell">
+                       <Link href={`/invoices/${invoice.id}`} className="hover:underline">
+                          {invoice.id}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="font-medium">{getClientName(invoice.clientId)}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <Badge variant={statusVariant[invoice.status]}>
+                        {invoice.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {new Date(invoice.dueDate).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
+                    <TableCell>
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild><Link href={`/invoices/${invoice.id}`}>View Details</Link></DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditClick(invoice)}>
+                              <Pencil className="mr-2 h-4 w-4" /> Edit
+                            </DropdownMenuItem>
+                             <DropdownMenuItem onClick={() => handleDownloadPdf(invoice.id)}>Download PDF</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'Paid')}>Mark as Paid</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'Pending')}>Mark as Pending</DropdownMenuItem>
+                             <DropdownMenuSeparator />
+                             <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                             </AlertDialogTrigger>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the invoice
+                                &quot;{invoice.id}&quot;.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteInvoice(invoice.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+          <CardFooter>
+            <div className="text-xs text-muted-foreground">
+              Showing <strong>1-{invoices.length}</strong> of <strong>{invoices.length}</strong> invoices
+            </div>
+          </CardFooter>
+        </Card>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Invoice</DialogTitle>
+            <DialogDescription>
+                Update the details for invoice {editingInvoice?.id}.
+            </DialogDescription>
+          </DialogHeader>
+          <InvoiceForm 
+            invoice={editingInvoice} 
+            clients={clients} 
+            onSave={handleInvoiceSave} 
+          />
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
