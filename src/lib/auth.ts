@@ -52,26 +52,6 @@ export async function login(email: string, password?: string): Promise<User> {
     return Promise.reject(new Error('Invalid email or password'));
 }
 
-export async function signup(name: string, email: string, password?: string): Promise<User> {
-    const users = getStoredUsers();
-    if (users.some(u => u.email === email)) {
-        return Promise.reject(new Error('User with this email already exists'));
-    }
-
-    const newUser: User = {
-        id: `user-${Date.now()}`,
-        name,
-        email,
-        password
-    };
-
-    const usersToStore = [...users, newUser];
-    saveStoredUsers(usersToStore);
-
-    const { password: _, ...userToReturn } = newUser;
-    return Promise.resolve(userToReturn);
-}
-
 export function logout() {
     if (typeof window !== 'undefined') {
         localStorage.removeItem(USER_STORAGE_KEY);

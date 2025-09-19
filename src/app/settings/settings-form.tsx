@@ -11,16 +11,15 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
-import { Upload, Moon, Sun, Computer, Users, UserPlus } from 'lucide-react';
+import { Upload, Moon, Sun, Computer, Users } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { getStoredUsers, type User, signup } from '@/lib/auth';
+import { getStoredUsers, type User } from '@/lib/auth';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const settingsSchema = z.object({
   appName: z.string().optional(),
@@ -110,81 +109,11 @@ function applySettings(settings: SettingsFormValues) {
     }
 }
 
-function AddUserForm({ onUserAdded }: { onUserAdded: () => void }) {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [loading, setLoading] = useState(false);
-    const { toast } = useToast();
-
-    const handleSignup = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        try {
-            await signup(name, email, password);
-            toast({
-                title: 'User Created',
-                description: `User ${name} has been added successfully.`,
-            });
-            onUserAdded();
-        } catch (error) {
-            toast({
-                title: 'Signup Failed',
-                description: (error as Error).message,
-                variant: 'destructive',
-            });
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <form onSubmit={handleSignup} className="grid gap-4">
-            <div className="grid gap-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                    id="name"
-                    placeholder="John Doe"
-                    required
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                />
-            </div>
-            <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                />
-            </div>
-            <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                    id="password"
-                    type="password"
-                    required
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                />
-            </div>
-            <Button type="submit" className="w-full mt-2" disabled={loading}>
-                {loading ? 'Creating User...' : 'Create User'}
-            </Button>
-        </form>
-    );
-}
-
-
 export function SettingsForm() {
   const { toast } = useToast();
   const [logoPreview, setLogoPreview] = useState<string | undefined>(defaultSettings.companyLogo);
   const [headerBgPreview, setHeaderBgPreview] = useState<string | undefined>(defaultSettings.headerBackgroundImage);
   const [users, setUsers] = useState<User[]>([]);
-  const [isUserFormOpen, setIsUserFormOpen] = useState(false);
   
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
@@ -256,7 +185,6 @@ export function SettingsForm() {
   };
 
   return (
-    <Dialog open={isUserFormOpen} onOpenChange={setIsUserFormOpen}>
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="flex justify-start gap-2 sticky top-[calc(theme(height.14)+1px)] bg-background/80 backdrop-blur-sm p-4 -m-4 z-10">
@@ -274,9 +202,6 @@ export function SettingsForm() {
                             View and manage users who can access the application.
                             </CardDescription>
                         </div>
-                        <DialogTrigger asChild>
-                            <Button variant="outline"><UserPlus className="mr-2 h-4 w-4" /> Add User</Button>
-                        </DialogTrigger>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -745,18 +670,5 @@ export function SettingsForm() {
             </div>
         </form>
     </Form>
-      <DialogContent>
-          <DialogHeader>
-              <DialogTitle>Add New User</DialogTitle>
-              <DialogDescription>
-                  Fill in the details to create a new user account.
-              </DialogDescription>
-          </DialogHeader>
-          <AddUserForm onUserAdded={() => {
-              fetchUsers();
-              setIsUserFormOpen(false);
-          }} />
-      </DialogContent>
-    </Dialog>
   );
 }
