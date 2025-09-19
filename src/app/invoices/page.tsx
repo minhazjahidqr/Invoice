@@ -1,10 +1,14 @@
+
+'use client';
+
+import { useState } from 'react';
 import Link from "next/link";
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
-import { mockInvoices } from '@/lib/data';
+import { mockInvoices as initialInvoices, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,8 +18,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils";
+import { useToast } from '@/hooks/use-toast';
 
-const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
+const statusVariant: { [key in Invoice['status']]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   Paid: 'default',
   Sent: 'secondary',
   Draft: 'outline',
@@ -24,6 +29,19 @@ const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 
 };
 
 export default function InvoicesPage() {
+  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  const { toast } = useToast();
+
+  const handleStatusChange = (invoiceId: string, newStatus: Invoice['status']) => {
+    setInvoices(invoices.map(inv => 
+      inv.id === invoiceId ? { ...inv, status: newStatus } : inv
+    ));
+    toast({
+      title: 'Invoice Status Updated',
+      description: `Invoice ${invoiceId} has been marked as ${newStatus}.`
+    });
+  };
+
   return (
     <AppLayout>
       <Card>
@@ -50,7 +68,7 @@ export default function InvoicesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockInvoices.map((invoice) => (
+              {invoices.map((invoice) => (
                 <TableRow key={invoice.id}>
                   <TableCell className="hidden font-medium sm:table-cell">
                     {invoice.id}
@@ -62,7 +80,9 @@ export default function InvoicesPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {new Date(invoice.dueDate).toLocaleDateString()}
+                    {new Date(invoice.dueDate).toLocaleDate_STRING()
+//
+                    .toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
                   <TableCell>
@@ -76,8 +96,8 @@ export default function InvoicesPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem asChild><Link href={`/invoices/${invoice.id}`}>View Details</Link></DropdownMenuItem>
-                        <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
-                        <DropdownMenuItem>Mark as Pending</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'Paid')}>Mark as Paid</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStatusChange(invoice.id, 'Pending')}>Mark as Pending</DropdownMenuItem>
                         <DropdownMenuItem>Download PDF</DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">
                           Delete
@@ -92,7 +112,7 @@ export default function InvoicesPage() {
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Showing <strong>1-{mockInvoices.length}</strong> of <strong>{mockInvoices.length}</strong> invoices
+            Showing <strong>1-{invoices.length}</strong> of <strong>{invoices.length}</strong> invoices
           </div>
         </CardFooter>
       </Card>
