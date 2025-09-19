@@ -3,12 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
-import { getFromStorage, saveToStorage, type Quotation } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Quotation, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,7 +18,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from '@/hooks/use-toast';
 
@@ -31,6 +43,7 @@ const statusVariant: { [key in Quotation['status']]: 'default' | 'secondary' | '
 export default function QuotationsPage() {
   const [quotations, setQuotations] = useState<Quotation[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     setQuotations(getFromStorage('quotations', []));
@@ -50,6 +63,59 @@ export default function QuotationsPage() {
     toast({
       title: 'Quotation Status Updated',
       description: `Quotation ${quotationId} has been marked as ${newStatus}.`
+    });
+  };
+
+  const handleConvertToInvoice = (quotation: Quotation) => {
+    const existingInvoices = getFromStorage('invoices', []);
+    const newInvoiceId = `INV-${new Date().getFullYear()}-${String(existingInvoices.length + 1).padStart(3, '0')}`;
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
+
+    const newInvoice: Invoice = {
+        id: newInvoiceId,
+        quotationId: quotation.id,
+        client: quotation.client,
+        projectName: quotation.projectName,
+        date: new Date().toISOString(),
+        dueDate: dueDate.toISOString(),
+        total: quotation.total,
+        status: 'Draft',
+    };
+
+    const updatedInvoices = [newInvoice, ...existingInvoices];
+    saveToStorage('invoices', updatedInvoices);
+    window.dispatchEvent(new Event('storage'));
+
+    toast({
+        title: 'Invoice Created',
+        description: `Invoice ${newInvoiceId} has been created from Quotation ${quotation.id}.`,
+    });
+
+    router.push(`/invoices/${newInvoiceId}`);
+  };
+  
+  const handleDownloadPdf = (quotationId: string) => {
+    toast({
+      title: 'Download Started',
+      description: `Downloading PDF for quotation ${quotationId}. Please wait.`,
+    });
+    // In a real app, you would trigger a server-side PDF generation and download.
+    // For this demo, we'll just navigate to the detail page where download is available.
+    router.push(`/quotations/${quotationId}`);
+  };
+
+  const handleDeleteQuotation = (quotationId: string) => {
+    const quotationToDelete = quotations.find(q => q.id === quotationId);
+    if (!quotationToDelete) return;
+
+    const newQuotations = quotations.filter(q => q.id !== quotationId);
+    updateQuotations(newQuotations);
+
+    toast({
+        title: 'Quotation Deleted',
+        description: `Quotation "${quotationToDelete.id}" has been permanently delete.`,
+        variant: 'destructive',
     });
   };
 
@@ -99,32 +165,49 @@ export default function QuotationsPage() {
                   </TableCell>
                   <TableCell className="text-right">{formatCurrency(quotation.total)}</TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem asChild>
-                            <Link href={`/quotations/${quotation.id}`}>View Details</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Convert to Invoice</DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                            <Link href={`/quotations/${quotation.id}`}>Download PDF</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Approved')}>Mark as Approved</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Rejected')}>Mark as Rejected</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <AlertDialog>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem asChild>
+                              <Link href={`/quotations/${quotation.id}`}>View Details</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleConvertToInvoice(quotation)}>Convert to Invoice</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDownloadPdf(quotation.id)}>Download PDF</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Approved')}>Mark as Approved</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Rejected')}>Mark as Rejected</DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                           <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                  Delete
+                                </DropdownMenuItem>
+                           </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                       <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete the quotation
+                              &quot;{quotation.id}&quot;.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteQuotation(quotation.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                   </TableCell>
                 </TableRow>
               ))}

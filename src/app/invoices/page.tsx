@@ -82,7 +82,9 @@ export default function InvoicesPage() {
               {invoices.map((invoice) => (
                 <TableRow key={invoice.id}>
                   <TableCell className="hidden font-medium sm:table-cell">
-                    {invoice.id}
+                     <Link href={`/invoices/${invoice.id}`} className="hover:underline">
+                        {invoice.id}
+                    </Link>
                   </TableCell>
                   <TableCell className="font-medium">{invoice.client}</TableCell>
                   <TableCell className="hidden md:table-cell">
