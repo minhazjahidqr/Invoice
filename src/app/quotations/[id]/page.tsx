@@ -181,12 +181,12 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                              )}
                              <h2 className="font-headline text-2xl font-bold shadow-md" style={{color: `hsl(${settings.headerCompanyNameColor})`}}>{settings.companyName}</h2>
                         </div>
-                        <p className="text-sm text-gray-200 shadow-sm whitespace-pre-line">{settings.companyAddress}</p>
-                        <p className="text-sm text-gray-200 shadow-sm">{settings.companyContact}</p>
+                        <p className="text-sm shadow-sm whitespace-pre-line" style={{color: `hsl(${settings.headerCompanyAddressColor})`}}>{settings.companyAddress}</p>
+                        <p className="text-sm shadow-sm" style={{color: `hsl(${settings.headerCompanyAddressColor})`}}>{settings.companyContact}</p>
                     </div>
                     <div className="relative z-10 text-left sm:text-right">
                         <h1 className="text-4xl font-bold tracking-tight mb-2 text-white" style={{color: `hsl(${settings.headerTitleColor})`}}>QUOTATION</h1>
-                        <div className="text-sm text-gray-200">
+                        <div className="text-sm" style={{color: `hsl(${settings.headerCompanyAddressColor})`}}>
                             <p><strong>Quotation #:</strong> {quotation.id}</p>
                             <p><strong>Date:</strong> {new Date(quotation.date).toLocaleDateString()}</p>
                             <p><strong>Status:</strong> {quotation.status}</p>
@@ -288,5 +288,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     </AppLayout>
   );
 }
+
+    
 
     

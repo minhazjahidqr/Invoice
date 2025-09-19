@@ -43,6 +43,7 @@ const settingsSchema = z.object({
   pageSize: z.enum(['a4', 'letter']),
   headerTitleColor: z.string().optional(),
   headerCompanyNameColor: z.string().optional(),
+  headerCompanyAddressColor: z.string().optional(),
   footerText: z.string().optional(),
   headerBackgroundImage: z.string().optional(),
   headerBackgroundSize: z.enum(['cover', 'contain', 'auto']),
@@ -76,6 +77,7 @@ export const defaultSettings: SettingsFormValues = {
   pageSize: 'a4',
   headerTitleColor: '231 48% 48%',
   headerCompanyNameColor: '0 0% 100%',
+  headerCompanyAddressColor: '0 0% 98%',
   footerText: 'Thank you for your business!',
   headerBackgroundImage: '',
   headerBackgroundSize: 'cover',
@@ -651,12 +653,26 @@ export function SettingsForm() {
                                           <FormControl>
                                               <Input {...field} placeholder="e.g., 0 0% 100%" />
                                           </FormControl>
-                                          <FormDescription>The color of the company name text in the header. HSL format.</FormDescription>
+                                          <FormDescription>The color of the company name text. HSL format.</FormDescription>
                                           <FormMessage />
                                       </FormItem>
                                   )}
                               />
                           </div>
+                          <FormField
+                              control={form.control}
+                              name="headerCompanyAddressColor"
+                              render={({ field }) => (
+                                  <FormItem>
+                                      <FormLabel>Company Address Color</FormLabel>
+                                      <FormControl>
+                                          <Input {...field} placeholder="e.g., 0 0% 98%" />
+                                      </FormControl>
+                                      <FormDescription>The color of the company address and contact text. HSL format.</FormDescription>
+                                      <FormMessage />
+                                  </FormItem>
+                              )}
+                          />
                           <div className="space-y-2">
                               <FormLabel>Header Background Image</FormLabel>
                               <div className="flex items-center gap-4">
@@ -769,3 +785,5 @@ export function SettingsForm() {
     </Dialog>
   );
 }
+
+    
