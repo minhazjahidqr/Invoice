@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
-import { mockQuotations, saveQuotations, type Quotation } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Quotation } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,12 +33,13 @@ export default function QuotationsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    setQuotations(mockQuotations);
+    setQuotations(getFromStorage('quotations', []));
   }, []);
 
   const updateQuotations = (newQuotations: Quotation[]) => {
     setQuotations(newQuotations);
-    saveQuotations(newQuotations);
+    saveToStorage('quotations', newQuotations);
+    window.dispatchEvent(new Event('storage'));
   };
 
   const handleStatusChange = (quotationId: string, newStatus: Quotation['status']) => {

@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { mockProjects, mockClients, saveProjects, type Project, type Client } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Project, type Client } from '@/lib/data';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -22,24 +22,21 @@ export default function ProjectsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    setProjects(mockProjects);
-    setClients(mockClients);
-
-    const handleStorageChange = () => {
-      // This is a bit of a hack to re-read from our "database" (localStorage)
-      const newClients = JSON.parse(localStorage.getItem('clients') || '[]');
-      const newProjects = JSON.parse(localStorage.getItem('projects') || '[]');
-      setClients(newClients);
-      setProjects(newProjects);
+    const loadData = () => {
+      setProjects(getFromStorage('projects', []));
+      setClients(getFromStorage('clients', []));
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    loadData();
+
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
   }, []);
 
   const updateProjects = (newProjects: Project[]) => {
     setProjects(newProjects);
-    saveProjects(newProjects);
+    saveToStorage('projects', newProjects);
+    window.dispatchEvent(new Event('storage'));
   }
 
   const handleProjectSave = (project: Omit<Project, 'id'> & { id?: string }) => {

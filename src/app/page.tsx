@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Receipt, ArrowUpRight, MoreHorizontal, DollarSign } from 'lucide-react';
-import { mockInvoices, mockQuotations, saveInvoices, saveQuotations, type Quotation, type Invoice } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Quotation, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -46,29 +46,27 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    setQuotations(mockQuotations);
-    setInvoices(mockInvoices);
-
-    const handleStorageChange = () => {
-      // This is a bit of a hack to re-read from our "database" (localStorage)
-      const newQuotations = JSON.parse(localStorage.getItem('quotations') || '[]');
-      const newInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-      setQuotations(newQuotations);
-      setInvoices(newInvoices);
+    const loadData = () => {
+        setQuotations(getFromStorage('quotations', []));
+        setInvoices(getFromStorage('invoices', []));
     };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    loadData();
+
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
   }, []);
 
   const updateQuotations = (newQuotations: Quotation[]) => {
     setQuotations(newQuotations);
-    saveQuotations(newQuotations);
+    saveToStorage('quotations', newQuotations);
+    window.dispatchEvent(new Event('storage'));
   };
 
   const updateInvoices = (newInvoices: Invoice[]) => {
     setInvoices(newInvoices);
-    saveInvoices(newInvoices);
+    saveToStorage('invoices', newInvoices);
+    window.dispatchEvent(new Event('storage'));
   }
 
   const handleQuotationStatusChange = (quotationId: string, newStatus: Quotation['status']) => {

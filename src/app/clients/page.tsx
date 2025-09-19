@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { mockClients, saveClients, type Client } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Client } from '@/lib/data';
 import { MoreHorizontal, UserPlus, MapPin, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -23,13 +23,12 @@ export default function ClientsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // mockClients is now loaded from localStorage in data.ts
-    setClients(mockClients);
+    setClients(getFromStorage('clients', []));
   }, []);
 
   const updateClients = (newClients: Client[]) => {
     setClients(newClients);
-    saveClients(newClients);
+    saveToStorage('clients', newClients);
     window.dispatchEvent(new Event('storage'));
   }
 

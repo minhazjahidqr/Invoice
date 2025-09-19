@@ -61,7 +61,7 @@ const initialMockInvoices: Invoice[] = [
   { id: 'INV-2024-004', quotationId: 'Q-2023-018', client: 'Ongoing Partner', projectName: 'Q2 Support Contract', date: '2024-07-01', dueDate: '2024-07-31', total: 3000, status: 'Paid' },
 ];
 
-function getFromStorage<T>(key: string, fallback: T): T {
+export function getFromStorage<T>(key: string, fallback: T): T {
     if (typeof window === 'undefined') return fallback;
     const stored = window.localStorage.getItem(key);
     if (stored) {
@@ -69,41 +69,28 @@ function getFromStorage<T>(key: string, fallback: T): T {
             return JSON.parse(stored);
         } catch (e) {
             console.error(`Error parsing localStorage key "${key}":`, e);
+            // If parsing fails, initialize with fallback
+            saveToStorage(key, fallback);
             return fallback;
         }
+    } else {
+      // If not stored, initialize with fallback
+      saveToStorage(key, fallback);
     }
     return fallback;
 }
 
-function saveToStorage<T>(key: string, data: T) {
+export function saveToStorage<T>(key: string, data: T) {
     if (typeof window === 'undefined') return;
     window.localStorage.setItem(key, JSON.stringify(data));
 }
 
-export const mockClients: Client[] = getFromStorage('clients', initialMockClients);
-export const mockProjects: Project[] = getFromStorage('projects', initialMockProjects);
-export const mockQuotations: Quotation[] = getFromStorage('quotations', initialMockQuotations);
-export const mockInvoices: Invoice[] = getFromStorage('invoices', initialMockInvoices);
-
-export const saveClients = (clients: Client[]) => saveToStorage('clients', clients);
-export const saveProjects = (projects: Project[]) => saveToStorage('projects', projects);
-export const saveQuotations = (quotations: Quotation[]) => saveToStorage('quotations', quotations);
-export const saveInvoices = (invoices: Invoice[]) => saveToStorage('invoices', invoices);
-
 // Initialize storage if it's empty
 if (typeof window !== 'undefined') {
-    if (!window.localStorage.getItem('clients')) {
-        saveClients(initialMockClients);
-    }
-    if (!window.localStorage.getItem('projects')) {
-        saveProjects(initialMockProjects);
-    }
-    if (!window.localStorage.getItem('quotations')) {
-        saveQuotations(initialMockQuotations);
-    }
-    if (!window.localStorage.getItem('invoices')) {
-        saveInvoices(initialMockInvoices);
-    }
+    getFromStorage('clients', initialMockClients);
+    getFromStorage('projects', initialMockProjects);
+    getFromStorage('quotations', initialMockQuotations);
+    getFromStorage('invoices', initialMockInvoices);
 }
 
 

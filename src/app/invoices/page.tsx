@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
-import { mockInvoices, saveInvoices, type Invoice } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,12 +33,13 @@ export default function InvoicesPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    setInvoices(mockInvoices);
+    setInvoices(getFromStorage('invoices', []));
   }, []);
 
   const updateInvoices = (newInvoices: Invoice[]) => {
     setInvoices(newInvoices);
-    saveInvoices(newInvoices);
+    saveToStorage('invoices', newInvoices);
+    window.dispatchEvent(new Event('storage'));
   }
 
   const handleStatusChange = (invoiceId: string, newStatus: Invoice['status']) => {
