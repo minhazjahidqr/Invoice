@@ -10,9 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
-import { Upload } from 'lucide-react';
+import { Upload, Moon, Sun, Computer } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
 
 const themeSchema = z.object({
   appName: z.string().optional(),
@@ -21,6 +23,7 @@ const themeSchema = z.object({
   accentColor: z.string(),
   font: z.enum(['inter', 'space-grotesk', 'geist-sans']),
   companyLogo: z.string().optional(),
+  themeMode: z.enum(['light', 'dark', 'system']),
 });
 
 type ThemeFormValues = z.infer<typeof themeSchema>;
@@ -38,12 +41,13 @@ const defaultTheme = {
   accentColor: '174 100% 29%',
   font: 'inter',
   companyLogo: PlaceHolderImages.find(p => p.id === 'company-logo')?.imageUrl || '',
+  themeMode: 'system',
 };
 
 export function ThemeForm() {
   const { toast } = useToast();
   const [logoPreview, setLogoPreview] = useState<string | undefined>(defaultTheme.companyLogo);
-
+  
   const form = useForm<ThemeFormValues>({
     resolver: zodResolver(themeSchema),
     defaultValues: defaultTheme,
@@ -79,12 +83,39 @@ export function ThemeForm() {
         document.body.classList.add('font-headline');
     }
     
+    // Handle dark/light mode
+    if (theme.themeMode === 'dark') {
+      root.classList.add('dark');
+    } else if (theme.themeMode === 'light') {
+      root.classList.remove('dark');
+    } else {
+      // System preference
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
+    }
+
     // Update company logo in placeholder data (for other pages)
     const logoPlaceholder = PlaceHolderImages.find(p => p.id === 'company-logo');
     if (logoPlaceholder && theme.companyLogo) {
       logoPlaceholder.imageUrl = theme.companyLogo;
     }
   };
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+        const theme = form.getValues();
+        if (theme.themeMode === 'system') {
+            applyTheme(theme);
+        }
+    };
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [form]);
+
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -125,6 +156,89 @@ export function ThemeForm() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+         <FormField
+            control={form.control}
+            name="themeMode"
+            render={({ field }) => (
+                <FormItem className="space-y-3">
+                <FormLabel>Theme Mode</FormLabel>
+                <FormControl>
+                    <RadioGroup
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    className="grid max-w-md grid-cols-3 gap-8 pt-2"
+                    >
+                    <FormItem>
+                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary">
+                        <FormControl>
+                            <RadioGroupItem value="light" className="sr-only" />
+                        </FormControl>
+                        <div className="items-center rounded-md border-2 border-muted p-1 hover:border-accent">
+                            <div className="space-y-2 rounded-sm bg-[#ecedef] p-2">
+                            <div className="space-y-2 rounded-md bg-white p-2 shadow-sm">
+                                <div className="h-2 w-[80px] rounded-lg bg-[#ecedef]" />
+                                <div className="h-2 w-[100px] rounded-lg bg-[#ecedef]" />
+                            </div>
+                            <div className="flex items-center space-x-2 rounded-md bg-white p-2 shadow-sm">
+                                <div className="h-4 w-4 rounded-full bg-[#ecedef]" />
+                                <div className="h-2 w-[100px] rounded-lg bg-[#ecedef]" />
+                            </div>
+                            <div className="flex items-center space-x-2 rounded-md bg-white p-2 shadow-sm">
+                                <div className="h-4 w-4 rounded-full bg-[#ecedef]" />
+                                <div className="h-2 w-[100px] rounded-lg bg-[#ecedef]" />
+                            </div>
+                            </div>
+                        </div>
+                        <span className="block w-full p-2 text-center font-normal">
+                            Light
+                        </span>
+                        </FormLabel>
+                    </FormItem>
+                    <FormItem>
+                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary">
+                        <FormControl>
+                            <RadioGroupItem value="dark" className="sr-only" />
+                        </FormControl>
+                        <div className="items-center rounded-md border-2 border-muted bg-popover p-1 hover:border-accent">
+                            <div className="space-y-2 rounded-sm bg-slate-950 p-2">
+                            <div className="space-y-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                                <div className="h-2 w-[80px] rounded-lg bg-slate-400" />
+                                <div className="h-2 w-[100px] rounded-lg bg-slate-400" />
+                            </div>
+                            <div className="flex items-center space-x-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                                <div className="h-4 w-4 rounded-full bg-slate-400" />
+                                <div className="h-2 w-[100px] rounded-lg bg-slate-400" />
+                            </div>
+                            <div className="flex items-center space-x-2 rounded-md bg-slate-800 p-2 shadow-sm">
+                                <div className="h-4 w-4 rounded-full bg-slate-400" />
+                                <div className="h-2 w-[100px] rounded-lg bg-slate-400" />
+                            </div>
+                            </div>
+                        </div>
+                        <span className="block w-full p-2 text-center font-normal">
+                            Dark
+                        </span>
+                        </FormLabel>
+                    </FormItem>
+                     <FormItem>
+                        <FormLabel className="[&:has([data-state=checked])>div]:border-primary">
+                        <FormControl>
+                            <RadioGroupItem value="system" className="sr-only" />
+                        </FormControl>
+                        <div className="items-center rounded-md border-2 border-muted p-1 hover:border-accent">
+                            <Computer className="mx-auto my-10 h-10 w-10 text-muted-foreground" />
+                        </div>
+                        <span className="block w-full p-2 text-center font-normal">
+                            System
+                        </span>
+                        </FormLabel>
+                    </FormItem>
+                    </RadioGroup>
+                </FormControl>
+                <FormMessage />
+                </FormItem>
+            )}
+        />
         <FormField
             control={form.control}
             name="appName"

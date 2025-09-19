@@ -23,7 +23,7 @@ export default function RootLayout({
             try {
               const theme = localStorage.getItem('app-theme');
               if (theme) {
-                const { appName, primaryColor, backgroundColor, accentColor, font } = JSON.parse(theme);
+                const { appName, primaryColor, backgroundColor, accentColor, font, themeMode } = JSON.parse(theme);
                 const root = document.documentElement;
 
                 if (appName) {
@@ -37,6 +37,16 @@ export default function RootLayout({
                 document.body.classList.remove('font-body', 'font-headline');
                 if (font === 'inter') document.body.classList.add('font-body');
                 else if (font === 'space-grotesk') document.body.classList.add('font-headline');
+
+                if (themeMode === 'dark') {
+                    root.classList.add('dark');
+                } else if (themeMode === 'light') {
+                    root.classList.remove('dark');
+                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                    root.classList.add('dark');
+                } else {
+                    root.classList.remove('dark');
+                }
 
               }
             } catch (e) {
