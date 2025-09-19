@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -22,12 +22,14 @@ import {
   Users,
   Briefcase,
   Settings,
+  LogOut,
 } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import React, { useState, useEffect } from 'react';
+import { getCurrentUser, logout } from '@/lib/auth';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -41,7 +43,19 @@ const settingsItem = { href: '/settings', label: 'Settings', icon: Settings };
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [appName, setAppName] = useState('QuoteCraft ELV');
+  const [user, setUser] = useState<{name: string, email: string} | null>(null);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      router.push('/login');
+    } else {
+      setUser(currentUser);
+    }
+  }, [router]);
+
   // Force re-render on storage change to update logo
   const [, setTick] = React.useState(0);
   React.useEffect(() => {
@@ -60,7 +74,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('storage', onStorage);
   }, []);
 
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
+
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+
+  if (!user) {
+    return (
+        <div className="flex h-screen items-center justify-center">
+            <p>Loading...</p>
+        </div>
+    );
+  }
 
   return (
     <SidebarProvider>
@@ -107,13 +134,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     <div className="flex w-full items-center gap-2">
                         <Avatar className="h-8 w-8">
                             {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" data-ai-hint={userAvatar.imageHint}/>}
-                            <AvatarFallback>JD</AvatarFallback>
+                            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden">
-                            <span className="font-medium text-sm">John Doe</span>
+                            <span className="font-medium text-sm">{user.name}</span>
                         </div>
                     </div>
                 </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton onClick={handleLogout} tooltip={{ children: 'Logout' }}>
+                <LogOut />
+                <span>Logout</span>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>

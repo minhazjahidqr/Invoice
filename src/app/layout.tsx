@@ -22,35 +22,37 @@ export default function RootLayout({
         
         <script dangerouslySetInnerHTML={{ __html: `
             try {
-              const theme = localStorage.getItem('app-settings');
-              if (theme) {
-                const { appName, primaryColor, backgroundColor, accentColor, font, themeMode } = JSON.parse(theme);
-                const root = document.documentElement;
+              if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/signup')) {
+                const theme = localStorage.getItem('app-settings');
+                if (theme) {
+                  const { appName, primaryColor, backgroundColor, accentColor, font, themeMode } = JSON.parse(theme);
+                  const root = document.documentElement;
 
-                if (appName) {
-                  document.title = appName;
-                }
-                
-                if (primaryColor) root.style.setProperty('--primary', primaryColor);
-                if (backgroundColor) root.style.setProperty('--background', backgroundColor);
-                if (accentColor) root.style.setProperty('--accent', accentColor);
-                
-                if (font) {
-                    document.body.classList.remove('font-body', 'font-headline');
-                    if (font === 'inter') document.body.classList.add('font-body');
-                    else if (font === 'space-grotesk') document.body.classList.add('font-headline');
-                }
+                  if (appName) {
+                    document.title = appName;
+                  }
+                  
+                  if (primaryColor) root.style.setProperty('--primary', primaryColor);
+                  if (backgroundColor) root.style.setProperty('--background', backgroundColor);
+                  if (accentColor) root.style.setProperty('--accent', accentColor);
+                  
+                  if (font) {
+                      document.body.classList.remove('font-body', 'font-headline');
+                      if (font === 'inter') document.body.classList.add('font-body');
+                      else if (font === 'space-grotesk') document.body.classList.add('font-headline');
+                  }
 
-                if (themeMode === 'dark') {
-                    root.classList.add('dark');
-                } else if (themeMode === 'light') {
-                    root.classList.remove('dark');
-                } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-                    root.classList.add('dark');
-                } else {
-                    root.classList.remove('dark');
-                }
+                  if (themeMode === 'dark') {
+                      root.classList.add('dark');
+                  } else if (themeMode === 'light') {
+                      root.classList.remove('dark');
+                  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                      root.classList.add('dark');
+                  } else {
+                      root.classList.remove('dark');
+                  }
 
+                }
               }
             } catch (e) {
               console.error('Failed to apply theme from localStorage', e);
