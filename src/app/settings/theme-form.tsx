@@ -38,6 +38,7 @@ const settingsSchema = z.object({
   pageSize: z.enum(['a4', 'letter']),
   headerTitleColor: z.string().optional(),
   headerCompanyNameColor: z.string().optional(),
+  headerCompanyAddressColor: z.string().optional(),
   footerText: z.string().optional(),
   headerBackgroundImage: z.string().optional(),
   headerBackgroundSize: z.enum(['cover', 'contain', 'auto']),
@@ -71,6 +72,7 @@ export const defaultSettings: SettingsFormValues = {
   pageSize: 'a4',
   headerTitleColor: '231 48% 48%',
   headerCompanyNameColor: '0 0% 100%',
+  headerCompanyAddressColor: '0 0% 98%',
   footerText: 'Thank you for your business!',
   headerBackgroundImage: '',
   headerBackgroundSize: 'cover',
@@ -469,5 +471,3 @@ export function SettingsForm() {
     </Form>
   );
 }
-
-    

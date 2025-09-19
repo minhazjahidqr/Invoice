@@ -288,7 +288,3 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     </AppLayout>
   );
 }
-
-    
-
-    

@@ -289,7 +289,3 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     </AppLayout>
   );
 }
-
-    
-
-    
