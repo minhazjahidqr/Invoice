@@ -209,6 +209,16 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                                             <TableCell className="font-medium">
                                                 {item.description}
                                                 <div className="text-muted-foreground text-xs sm:hidden mt-1">{item.brandName}</div>
+                                                <div className="mt-2 sm:hidden">
+                                                    <Image
+                                                        src={item.imageUrl ?? 'https://picsum.photos/seed/placeholder/64/64'}
+                                                        alt={item.description}
+                                                        width={64}
+                                                        height={64}
+                                                        className="rounded-md object-cover"
+                                                        data-ai-hint={item.imageHint}
+                                                    />
+                                                </div>
                                             </TableCell>
                                             <TableCell className="hidden sm:table-cell">{item.brandName}</TableCell>
                                             <TableCell className="hidden sm:table-cell">
