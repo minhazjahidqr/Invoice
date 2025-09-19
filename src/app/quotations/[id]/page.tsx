@@ -46,7 +46,11 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
             useCORS: true,
         });
         const imgData = canvas.toDataURL('image/png');
-        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdf = new jsPDF({
+          orientation: settings.pageOrientation,
+          unit: 'mm',
+          format: settings.pageSize,
+        });
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = pdf.internal.pageSize.getHeight();
         const imgWidth = canvas.width;

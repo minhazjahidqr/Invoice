@@ -32,6 +32,8 @@ const settingsSchema = z.object({
   companyContact: z.string().optional(),
   quotationTerms: z.string().optional(),
   invoicePaymentDetails: z.string().optional(),
+  pageOrientation: z.enum(['portrait', 'landscape']),
+  pageSize: z.enum(['a4', 'letter']),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -55,6 +57,8 @@ export const defaultSettings: SettingsFormValues = {
   companyContact: 'contact@quotecraft.dev',
   quotationTerms: 'Payment: 50% advance, 50% on completion.\nValidity: This quotation is valid for 30 days.\nWarranty: 1-year standard warranty on hardware.',
   invoicePaymentDetails: 'Bank: Tech Bank Inc.\nAccount #: 1234567890\nSWIFT: TBICUS33',
+  pageOrientation: 'portrait',
+  pageSize: 'a4',
 };
 
 function applySettings(settings: SettingsFormValues) {
@@ -371,32 +375,34 @@ export function SettingsForm() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="companyName"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Company Name</FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder="Your Company LLC" />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="companyContact"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Company Contact</FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder="contact@yourcompany.com" />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={form.control}
+                                name="companyName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Company Name</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="Your Company LLC" />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="companyContact"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Company Contact</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="contact@yourcompany.com" />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <FormField
                             control={form.control}
                             name="companyAddress"
@@ -436,6 +442,57 @@ export function SettingsForm() {
                                 </FormItem>
                             )}
                         />
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Page Setup</CardTitle>
+                        <CardDescription>
+                        Configure the page size and orientation for generated PDF documents.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={form.control}
+                                name="pageSize"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Page Size</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger><SelectValue placeholder="Select a page size" /></SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="a4">A4</SelectItem>
+                                            <SelectItem value="letter">Letter</SelectItem>
+                                        </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="pageOrientation"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Page Orientation</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger><SelectValue placeholder="Select an orientation" /></SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="portrait">Portrait</SelectItem>
+                                            <SelectItem value="landscape">Landscape</SelectItem>
+                                        </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                       </div>
                     </CardContent>
                 </Card>
             </div>
