@@ -52,6 +52,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [appName, setAppName] = useState('QuoteCraft ELV');
   const [user, setUser] = useState<User | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -59,6 +60,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       router.push('/login');
     } else {
       setUser(currentUser);
+      setAuthChecked(true);
     }
   }, [router]);
 
@@ -89,7 +91,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
 
-  if (!user) {
+  if (!authChecked || !user) {
     return (
         <div className="flex h-screen items-center justify-center">
             <p>Loading...</p>
