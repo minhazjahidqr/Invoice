@@ -25,6 +25,7 @@ import { ClientForm } from '@/app/clients/client-form';
 
 const formSchema = z.object({
   clientId: z.string().min(1, 'Client is required.'),
+  projectName: z.string().min(2, 'Project name is required.'),
   quotationDraft: z.string(),
   items: z.array(z.object({
     imageUrl: z.string().url().optional().or(z.literal('')),
@@ -54,6 +55,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     resolver: zodResolver(formSchema),
     defaultValues: {
       clientId: '',
+      projectName: '',
       quotationDraft: `CCTV System:
 - 8-Channel DVR
 - 4x Dome Cameras
@@ -119,7 +121,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
       // Add new client
       const newClient = { ...client, id: `cli-${Date.now()}` } as Client;
       updatedClients = [newClient, ...clients];
-      message = `Client "${client.name}" has been created.`;
+      message = `Client "${newClient.name}" has been created.`;
       newClientId = newClient.id;
     }
     
@@ -150,7 +152,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     const newQuotation: Quotation = {
         id: `Q-${new Date().getFullYear()}-${String(existingQuotations.length + 1).padStart(3, '0')}`,
         clientId: client.id,
-        projectName: 'N/A',
+        projectName: data.projectName,
         date: new Date().toISOString(),
         total: total,
         status: 'Sent'
@@ -176,7 +178,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     <Dialog open={clientFormOpen} onOpenChange={setClientFormOpen}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="grid md:grid-cols-1 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Client</Label>
               <div className="flex gap-2">
@@ -204,6 +206,19 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
                 </DialogTrigger>
               </div>
             </div>
+            <FormField
+              control={form.control}
+              name="projectName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Project Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Office Security Upgrade" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
 
           {selectedClient && (
