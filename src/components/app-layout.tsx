@@ -53,6 +53,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [appName, setAppName] = useState('QuoteCraft ELV');
   const [user, setUser] = useState<User | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [, setTick] = React.useState(0);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -62,11 +63,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setUser(currentUser);
       setAuthChecked(true);
     }
-  }, [router]);
 
-  // Force re-render on storage change to update logo
-  const [, setTick] = React.useState(0);
-  React.useEffect(() => {
     const onStorage = () => {
       setTick(t => t + 1);
       const savedSettings = localStorage.getItem('app-settings');
@@ -76,13 +73,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           setAppName(parsedSettings.appName);
         }
       }
-      const currentUser = getCurrentUser();
-      setUser(currentUser);
+      const updatedUser = getCurrentUser();
+      if (!updatedUser) {
+        router.push('/login');
+      } else {
+        setUser(updatedUser);
+      }
     };
+
     window.addEventListener('storage', onStorage);
-    onStorage(); // check on initial load
+    onStorage(); 
+
     return () => window.removeEventListener('storage', onStorage);
-  }, []);
+  }, [router]);
 
   const handleLogout = () => {
     logout();

@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus, ImageOff } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
-import { defaultQuotationItems, type Client, type Quotation, saveQuotations, mockQuotations } from '@/lib/data';
+import { defaultQuotationItems, type Client, type Quotation, getFromStorage, saveToStorage } from '@/lib/data';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -143,9 +143,11 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     const subtotal = data.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
     const tax = subtotal * 0.05;
     const total = subtotal + tax;
+    
+    const existingQuotations = getFromStorage('quotations', []);
 
     const newQuotation: Quotation = {
-        id: `Q-${new Date().getFullYear()}-${String(mockQuotations.length + 1).padStart(3, '0')}`,
+        id: `Q-${new Date().getFullYear()}-${String(existingQuotations.length + 1).padStart(3, '0')}`,
         client: client.name,
         projectName: 'N/A',
         date: new Date().toISOString(),
@@ -153,8 +155,9 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
         status: 'Sent'
     };
 
-    const updatedQuotations = [newQuotation, ...mockQuotations];
-    saveQuotations(updatedQuotations);
+    const updatedQuotations = [newQuotation, ...existingQuotations];
+    saveToStorage('quotations', updatedQuotations);
+    window.dispatchEvent(new Event('storage'));
 
     toast({
       title: "Quotation Created!",
@@ -395,5 +398,3 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     </Dialog>
   );
 }
-
-    
