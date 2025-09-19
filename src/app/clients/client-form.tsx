@@ -14,7 +14,7 @@ const formSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters.'),
   email: z.string().email('Invalid email address.').or(z.literal('')),
   phone: z.string().min(5, 'Phone number is too short.'),
-  address: z.string().min(5, 'Address is too short.'),
+  address: z.string(),
 });
 
 type ClientFormValues = z.infer<typeof formSchema>;
@@ -87,7 +87,7 @@ export function ClientForm({ client, onSave }: ClientFormProps) {
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Address</FormLabel>
+              <FormLabel>Address (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., 123 Innovation Drive, Tech City" {...field} />
               </FormControl>
