@@ -123,6 +123,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
       newClientId = newClient.id;
     }
     
+    saveToStorage('clients', updatedClients);
     onClientsUpdate(updatedClients);
     form.setValue('clientId', newClientId, { shouldValidate: true });
     toast({
@@ -398,3 +399,4 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     </Dialog>
   );
 }
+
