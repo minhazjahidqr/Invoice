@@ -41,11 +41,17 @@ const navItems = [
 
 const settingsItem = { href: '/settings', label: 'Settings', icon: Settings };
 
+type User = {
+    id: string;
+    name: string;
+    email: string;
+}
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const [appName, setAppName] = useState('QuoteCraft ELV');
-  const [user, setUser] = useState<{name: string, email: string} | null>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
@@ -68,6 +74,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           setAppName(parsedSettings.appName);
         }
       }
+      const currentUser = getCurrentUser();
+      setUser(currentUser);
     };
     window.addEventListener('storage', onStorage);
     onStorage(); // check on initial load
