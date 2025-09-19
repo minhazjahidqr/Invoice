@@ -167,89 +167,8 @@ export function SettingsForm() {
           <Button type="button" variant="outline" onClick={onReset}>Reset to Default</Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Column 1: Document Settings */}
-            <div className="lg:col-span-1 space-y-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>PDF & Document Settings</CardTitle>
-                        <CardDescription>
-                        Information that will appear on your quotations and invoices.
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="companyName"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Company Name</FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder="Your Company LLC" />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                         <FormField
-                            control={form.control}
-                            name="companyContact"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Company Contact</FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder="contact@yourcompany.com" />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="companyAddress"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Company Address</FormLabel>
-                                <FormControl>
-                                    <Textarea {...field} placeholder="123 Main St, Anytown, USA" rows={3}/>
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="quotationTerms"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Quotation - Terms & Conditions</FormLabel>
-                                <FormControl>
-                                    <Textarea {...field} placeholder="Payment: 50% advance..." rows={4} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="invoicePaymentDetails"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Invoice - Payment Details</FormLabel>
-                                <FormControl>
-                                    <Textarea {...field} placeholder="Bank: My Bank..." rows={4} />
-                                </FormControl>
-                                <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Column 2: Theme Settings */}
-            <div className="lg:col-span-2 space-y-6">
-              <Card>
+        <div className="space-y-6">
+            <Card>
                 <CardHeader>
                     <CardTitle>Theme Customization</CardTitle>
                     <CardDescription>
@@ -443,9 +362,84 @@ export function SettingsForm() {
                     </div>
                  </CardContent>
                </Card>
+            
+               <Card>
+                    <CardHeader>
+                        <CardTitle>PDF & Document Settings</CardTitle>
+                        <CardDescription>
+                        Information that will appear on your quotations and invoices.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="companyName"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Company Name</FormLabel>
+                                <FormControl>
+                                    <Input {...field} placeholder="Your Company LLC" />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                         <FormField
+                            control={form.control}
+                            name="companyContact"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Company Contact</FormLabel>
+                                <FormControl>
+                                    <Input {...field} placeholder="contact@yourcompany.com" />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="companyAddress"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Company Address</FormLabel>
+                                <FormControl>
+                                    <Textarea {...field} placeholder="123 Main St, Anytown, USA" rows={3}/>
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="quotationTerms"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Quotation - Terms & Conditions</FormLabel>
+                                <FormControl>
+                                    <Textarea {...field} placeholder="Payment: 50% advance..." rows={4} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="invoicePaymentDetails"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Invoice - Payment Details</FormLabel>
+                                <FormControl>
+                                    <Textarea {...field} placeholder="Bank: My Bank..." rows={4} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </CardContent>
+                </Card>
             </div>
-        </div>
-      </form>
+        </form>
     </Form>
   );
 }
