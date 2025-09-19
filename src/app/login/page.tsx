@@ -37,6 +37,13 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = () => {
+    toast({
+        title: 'Forgot Password',
+        description: 'Password reset is not available in this demo. Please contact an administrator.',
+    });
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
@@ -62,6 +69,13 @@ export default function LoginPage() {
             <div className="grid gap-2">
               <div className="flex items-center">
                 <Label htmlFor="password">Password</Label>
+                <button 
+                    type="button"
+                    onClick={handleForgotPassword}
+                    className="ml-auto inline-block text-sm underline"
+                >
+                    Forgot your password?
+                </button>
               </div>
               <Input 
                 id="password" 
