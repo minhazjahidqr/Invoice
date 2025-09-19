@@ -123,7 +123,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                         <p className="text-muted-foreground text-sm">{settings.companyContact}</p>
                     </div>
                     <div className="text-right">
-                        <h1 className="text-4xl font-bold text-primary tracking-tight mb-2">INVOICE</h1>
+                        <h1 className="text-4xl font-bold tracking-tight mb-2" style={{color: `hsl(${settings.headerTitleColor})`}}>INVOICE</h1>
                         <div className="text-sm">
                             <p><strong>Invoice #:</strong> {invoice.id}</p>
                             <p><strong>Date:</strong> {new Date(invoice.date).toLocaleDateString()}</p>
@@ -202,10 +202,12 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                 </section>
 
                 <footer className="mt-12 text-center text-sm text-muted-foreground">
-                    <p>Thank you for your business!</p>
+                    <p>{settings.footerText}</p>
                 </footer>
             </Card>
         </div>
     </AppLayout>
   );
 }
+
+    

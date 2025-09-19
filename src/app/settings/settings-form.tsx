@@ -34,6 +34,8 @@ const settingsSchema = z.object({
   invoicePaymentDetails: z.string().optional(),
   pageOrientation: z.enum(['portrait', 'landscape']),
   pageSize: z.enum(['a4', 'letter']),
+  headerTitleColor: z.string().optional(),
+  footerText: z.string().optional(),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -59,6 +61,8 @@ export const defaultSettings: SettingsFormValues = {
   invoicePaymentDetails: 'Bank: Tech Bank Inc.\nAccount #: 1234567890\nSWIFT: TBICUS33',
   pageOrientation: 'portrait',
   pageSize: 'a4',
+  headerTitleColor: '231 48% 48%',
+  footerText: 'Thank you for your business!',
 };
 
 function applySettings(settings: SettingsFormValues) {
@@ -495,8 +499,60 @@ export function SettingsForm() {
                        </div>
                     </CardContent>
                 </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Header Design</CardTitle>
+                        <CardDescription>
+                        Customize the header of your PDF documents.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="headerTitleColor"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Document Title Color</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="e.g., 231 48% 48%" />
+                                    </FormControl>
+                                    <FormDescription>The color of the "QUOTATION" or "INVOICE" text. HSL format.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Footer Design</CardTitle>
+                        <CardDescription>
+                        Customize the footer of your PDF documents.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                         <FormField
+                            control={form.control}
+                            name="footerText"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Footer Text</FormLabel>
+                                    <FormControl>
+                                        <Input {...field} placeholder="e.g., Thank you for your business!" />
+                                    </FormControl>
+                                    <FormDescription>The main text that appears in the document footer.</FormDescription>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    </CardContent>
+                </Card>
             </div>
         </form>
     </Form>
   );
 }
+
+    
