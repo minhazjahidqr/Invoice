@@ -229,7 +229,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                                                     width={64}
                                                     height={64}
                                                     className="rounded-md object-cover"
-                                                    data-ai-hint={item.imageHint}
+                                                    data-ai-hint={item.imageHint || ''}
                                                 />
                                             </div>
                                         </TableCell>
@@ -241,7 +241,7 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                                               width={64}
                                               height={64}
                                               className="rounded-md object-cover"
-                                              data-ai-hint={item.imageHint}
+                                              data-ai-hint={item.imageHint || ''}
                                             />
                                         </TableCell>
                                         <TableCell className="text-center">{item.quantity}</TableCell>
