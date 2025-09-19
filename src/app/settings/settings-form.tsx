@@ -37,6 +37,8 @@ const settingsSchema = z.object({
   headerTitleColor: z.string().optional(),
   footerText: z.string().optional(),
   headerBackgroundImage: z.string().optional(),
+  headerBackgroundSize: z.enum(['cover', 'contain', 'auto']),
+  headerBackgroundPosition: z.string(),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsSchema>;
@@ -65,6 +67,8 @@ export const defaultSettings: SettingsFormValues = {
   headerTitleColor: '231 48% 48%',
   footerText: 'Thank you for your business!',
   headerBackgroundImage: '',
+  headerBackgroundSize: 'cover',
+  headerBackgroundPosition: 'center',
 };
 
 function applySettings(settings: SettingsFormValues) {
@@ -512,7 +516,7 @@ export function SettingsForm() {
                         Customize the header of your PDF documents.
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="grid md:grid-cols-2 gap-6">
+                    <CardContent className="space-y-6">
                         <FormField
                             control={form.control}
                             name="headerTitleColor"
@@ -549,6 +553,54 @@ export function SettingsForm() {
                             />
                             </div>
                         </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <FormField
+                                control={form.control}
+                                name="headerBackgroundSize"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Background Size</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger><SelectValue placeholder="Select a size" /></SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="cover">Cover</SelectItem>
+                                            <SelectItem value="contain">Contain</SelectItem>
+                                            <SelectItem value="auto">Auto</SelectItem>
+                                        </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="headerBackgroundPosition"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Background Position</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger><SelectValue placeholder="Select a position" /></SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="center">Center</SelectItem>
+                                            <SelectItem value="top">Top</SelectItem>
+                                            <SelectItem value="bottom">Bottom</SelectItem>
+                                            <SelectItem value="left">Left</SelectItem>
+                                            <SelectItem value="right">Right</SelectItem>
+                                            <SelectItem value="left top">Left Top</SelectItem>
+                                            <SelectItem value="left bottom">Left Bottom</SelectItem>
+                                            <SelectItem value="right top">Right Top</SelectItem>
+                                            <SelectItem value="right bottom">Right Bottom</SelectItem>
+                                        </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                       </div>
                     </CardContent>
                 </Card>
 

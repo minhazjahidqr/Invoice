@@ -89,8 +89,8 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
   const headerStyle = settings.headerBackgroundImage
     ? {
         backgroundImage: `url(${settings.headerBackgroundImage})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: settings.headerBackgroundSize,
+        backgroundPosition: settings.headerBackgroundPosition,
       }
     : {};
 
