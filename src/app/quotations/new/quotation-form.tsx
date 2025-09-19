@@ -1,5 +1,5 @@
 'use client';
-import { useState, useTransition, ChangeEvent } from 'react';
+import { useState, useTransition, ChangeEvent, useEffect } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload } from 'lucide-react';
+import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
 import { defaultQuotationItems, type Client, type Project } from '@/lib/data';
@@ -56,6 +56,9 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
     control: form.control,
     name: "items",
   });
+
+  const selectedClientId = form.watch('clientId');
+  const selectedClient = clients.find(c => c.id === selectedClientId);
 
   const handleImageUpload = (e: ChangeEvent<HTMLInputElement>, index: number, fieldName: `items.${number}.imageUrl`) => {
     const file = e.target.files?.[0];
@@ -145,6 +148,28 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
             )}
           />
         </div>
+
+        {selectedClient && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Client Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+               <div className="flex items-center gap-2 text-muted-foreground">
+                  <Mail className="h-4 w-4" />
+                  <span>{selectedClient.email}</span>
+               </div>
+               <div className="flex items-center gap-2 text-muted-foreground">
+                  <Phone className="h-4 w-4" />
+                  <span>{selectedClient.phone}</span>
+               </div>
+               <div className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="h-4 w-4" />
+                  <span>{selectedClient.address}</span>
+               </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
