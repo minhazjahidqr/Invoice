@@ -80,7 +80,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                         <TableHeader>
                             <TableRow>
                                 <TableHead className="w-[50px]">SL</TableHead>
-                                <TableHead>Item Discription</TableHead>
+                                <TableHead>Discription</TableHead>
                                 <TableHead>Brand Name</TableHead>
                                 <TableHead className="w-[80px]">Image</TableHead>
                                 <TableHead className="text-center">Quantity</TableHead>
