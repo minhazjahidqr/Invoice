@@ -8,7 +8,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal } from 'lucide-react';
+import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { getFromStorage, saveToStorage, type Quotation, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
@@ -46,7 +46,12 @@ export default function QuotationsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    setQuotations(getFromStorage('quotations', []));
+    const loadData = () => {
+      setQuotations(getFromStorage('quotations', []));
+    };
+    loadData();
+    window.addEventListener('storage', loadData);
+    return () => window.removeEventListener('storage', loadData);
   }, []);
 
   const updateQuotations = (newQuotations: Quotation[]) => {
@@ -96,10 +101,6 @@ export default function QuotationsPage() {
   };
   
   const handleDownloadPdf = (quotationId: string) => {
-    toast({
-      title: 'Download Started',
-      description: `Downloading PDF for quotation ${quotationId}. Please wait.`,
-    });
     // In a real app, you would trigger a server-side PDF generation and download.
     // For this demo, we'll just navigate to the detail page where download is available.
     router.push(`/quotations/${quotationId}`);
@@ -114,7 +115,7 @@ export default function QuotationsPage() {
 
     toast({
         title: 'Quotation Deleted',
-        description: `Quotation "${quotationToDelete.id}" has been permanently delete.`,
+        description: `Quotation "${quotationToDelete.id}" has been permanently deleted.`,
         variant: 'destructive',
     });
   };
@@ -187,6 +188,7 @@ export default function QuotationsPage() {
                           <DropdownMenuSeparator />
                            <AlertDialogTrigger asChild>
                                 <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                  <Trash2 className="mr-2 h-4 w-4" />
                                   Delete
                                 </DropdownMenuItem>
                            </AlertDialogTrigger>
