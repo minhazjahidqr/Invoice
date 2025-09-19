@@ -30,21 +30,26 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
 
   useEffect(() => {
-    const savedSettings = localStorage.getItem('app-settings');
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
+    const onStorageChange = () => {
+      const savedSettings = localStorage.getItem('app-settings');
+      if (savedSettings) {
+        setSettings(JSON.parse(savedSettings));
+      }
+
+      const invoices = getFromStorage<Invoice[]>('invoices', []);
+      const foundInvoice = invoices.find(inv => inv.id === params.id);
+      setInvoice(foundInvoice);
+
+       if (foundInvoice) {
+        const clients = getFromStorage<Client[]>('clients', []);
+        const foundClient = clients.find(c => c.id === foundInvoice.clientId);
+        setClient(foundClient);
+      }
     }
-
-    const invoices = getFromStorage<Invoice[]>('invoices', []);
-    const foundInvoice = invoices.find(inv => inv.id === params.id);
-    setInvoice(foundInvoice);
-
-     if (foundInvoice) {
-      const clients = getFromStorage<Client[]>('clients', []);
-      const foundClient = clients.find(c => c.id === foundInvoice.clientId);
-      setClient(foundClient);
-    }
-
+    
+    onStorageChange();
+    window.addEventListener('storage', onStorageChange);
+    return () => window.removeEventListener('storage', onStorageChange);
   }, [params.id]);
   
   const handleItemSave = (updatedInvoice: Invoice) => {
@@ -149,8 +154,8 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                                     <Image 
                                         src={settings.companyLogo}
                                         alt="Company Logo"
-                                        width={40}
-                                        height={40}
+                                        width={settings.companyLogoWidth || 40}
+                                        height={settings.companyLogoHeight || 40}
                                         data-ai-hint="company logo"
                                         className="object-contain bg-white/80 p-1 rounded"
                                     />

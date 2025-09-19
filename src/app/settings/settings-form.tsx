@@ -20,7 +20,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { getStoredUsers, updateUser, type User } from '@/lib/auth';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuLabel, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { UserEditForm } from './user-edit-form';
 
@@ -32,6 +31,8 @@ const settingsSchema = z.object({
   accentColor: z.string(),
   font: z.enum(['inter', 'space-grotesk', 'geist-sans']),
   companyLogo: z.string().optional(),
+  companyLogoWidth: z.coerce.number().optional(),
+  companyLogoHeight: z.coerce.number().optional(),
   themeMode: z.enum(['light', 'dark', 'system']),
   companyName: z.string().optional(),
   companyAddress: z.string().optional(),
@@ -62,6 +63,8 @@ export const defaultSettings: SettingsFormValues = {
   accentColor: '174 100% 29%',
   font: 'inter',
   companyLogo: PlaceHolderImages.find(p => p.id === 'company-logo')?.imageUrl || '',
+  companyLogoWidth: 40,
+  companyLogoHeight: 40,
   themeMode: 'system',
   companyName: 'QuoteCraft ELV',
   companyAddress: '123 Tech Avenue, Silicon Valley, CA 94043',
@@ -432,26 +435,54 @@ export function SettingsForm() {
                               )}
                           />
                           <div className="space-y-2">
-                              <FormLabel>Company Logo</FormLabel>
-                              <div className="flex items-center gap-4">
+                            <FormLabel>Company Logo</FormLabel>
+                            <div className="flex items-center gap-4">
                               {logoPreview && <Image src={logoPreview} alt="Company Logo Preview" width={64} height={64} className="rounded-md object-contain bg-muted" />}
                               <FormField
-                                  control={form.control}
-                                  name="companyLogo"
-                                  render={() => (
+                                control={form.control}
+                                name="companyLogo"
+                                render={() => (
                                   <FormItem>
-                                      <FormControl>
-                                          <Label htmlFor="logo-upload" className="cursor-pointer inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
-                                              <Upload className="h-4 w-4" />
-                                              <span>Upload New Logo</span>
-                                          </Label>
-                                      </FormControl>
-                                      <Input id="logo-upload" type="file" className="sr-only" accept="image/*" onChange={(e) => handleImageUpload(e, 'companyLogo', setLogoPreview)} />
-                                      <FormMessage/>
+                                    <FormControl>
+                                      <Label htmlFor="logo-upload" className="cursor-pointer inline-flex items-center gap-2 text-sm font-medium text-primary hover:text-primary/80">
+                                        <Upload className="h-4 w-4" />
+                                        <span>Upload New Logo</span>
+                                      </Label>
+                                    </FormControl>
+                                    <Input id="logo-upload" type="file" className="sr-only" accept="image/*" onChange={(e) => handleImageUpload(e, 'companyLogo', setLogoPreview)} />
+                                    <FormMessage/>
                                   </FormItem>
-                                  )}
+                                )}
                               />
-                              </div>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4 pt-2">
+                                <FormField
+                                    control={form.control}
+                                    name="companyLogoWidth"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Logo Width</FormLabel>
+                                        <FormControl>
+                                        <Input type="number" {...field} placeholder="e.g., 40" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="companyLogoHeight"
+                                    render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Logo Height</FormLabel>
+                                        <FormControl>
+                                        <Input type="number" {...field} placeholder="e.g., 40" />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                    )}
+                                />
+                            </div>
                           </div>
                       </div>
                   </CardContent>

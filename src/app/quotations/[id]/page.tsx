@@ -28,21 +28,26 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
   const [settings, setSettings] = useState<SettingsFormValues>(defaultSettings);
 
   useEffect(() => {
-    const savedSettings = localStorage.getItem('app-settings');
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
+    const onStorageChange = () => {
+      const savedSettings = localStorage.getItem('app-settings');
+      if (savedSettings) {
+        setSettings(JSON.parse(savedSettings));
+      }
 
-    const quotations = getFromStorage<Quotation[]>('quotations', []);
-    const foundQuotation = quotations.find(q => q.id === params.id);
-    setQuotation(foundQuotation);
+      const quotations = getFromStorage<Quotation[]>('quotations', []);
+      const foundQuotation = quotations.find(q => q.id === params.id);
+      setQuotation(foundQuotation);
 
-    if (foundQuotation) {
-      const clients = getFromStorage<Client[]>('clients', []);
-      const foundClient = clients.find(c => c.id === foundQuotation.clientId);
-      setClient(foundClient);
+      if (foundQuotation) {
+        const clients = getFromStorage<Client[]>('clients', []);
+        const foundClient = clients.find(c => c.id === foundQuotation.clientId);
+        setClient(foundClient);
+      }
     }
     
+    onStorageChange();
+    window.addEventListener('storage', onStorageChange);
+    return () => window.removeEventListener('storage', onStorageChange);
   }, [params.id]);
 
   const handleDownloadPdf = async () => {
@@ -164,8 +169,8 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                                 <Image 
                                     src={settings.companyLogo}
                                     alt="Company Logo"
-                                    width={40}
-                                    height={40}
+                                    width={settings.companyLogoWidth || 40}
+                                    height={settings.companyLogoHeight || 40}
                                     data-ai-hint="company logo"
                                     className="object-contain bg-white/80 p-1 rounded"
                                 />
