@@ -137,7 +137,7 @@ export function SettingsForm() {
     fetchUsers();
     const savedSettings = localStorage.getItem('app-settings');
     if (savedSettings) {
-      const parsedSettings = JSON.parse(savedSettings);
+      const parsedSettings = { ...defaultSettings, ...JSON.parse(savedSettings) };
       form.reset(parsedSettings);
       setLogoPreview(parsedSettings.companyLogo);
       setHeaderBgPreview(parsedSettings.headerBackgroundImage);

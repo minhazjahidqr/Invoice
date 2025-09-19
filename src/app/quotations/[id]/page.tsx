@@ -32,6 +32,8 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
       const savedSettings = localStorage.getItem('app-settings');
       if (savedSettings) {
         setSettings(JSON.parse(savedSettings));
+      } else {
+        setSettings(defaultSettings);
       }
 
       const quotations = getFromStorage<Quotation[]>('quotations', []);
@@ -169,8 +171,8 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                                 <Image 
                                     src={settings.companyLogo}
                                     alt="Company Logo"
-                                    width={settings.companyLogoWidth || 40}
-                                    height={settings.companyLogoHeight || 40}
+                                    width={settings.companyLogoWidth ?? 40}
+                                    height={settings.companyLogoHeight ?? 40}
                                     data-ai-hint="company logo"
                                     className="object-contain bg-white/80 p-1 rounded"
                                 />
