@@ -1,3 +1,4 @@
+
 import Link from "next/link";
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -53,7 +54,9 @@ export default function QuotationsPage() {
               {mockQuotations.map((quotation) => (
                 <TableRow key={quotation.id}>
                   <TableCell className="hidden font-medium sm:table-cell">
-                    {quotation.id}
+                    <Link href={`/quotations/${quotation.id}`} className="hover:underline">
+                        {quotation.id}
+                    </Link>
                   </TableCell>
                   <TableCell className="font-medium">{quotation.client}</TableCell>
                   <TableCell>{quotation.projectName}</TableCell>
@@ -76,9 +79,13 @@ export default function QuotationsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/quotations/${quotation.id}`}>View Details</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem>Convert to Invoice</DropdownMenuItem>
-                        <DropdownMenuItem>Download PDF</DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/quotations/${quotation.id}`}>Download PDF</Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">
                           Delete
                         </DropdownMenuItem>
