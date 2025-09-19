@@ -31,9 +31,9 @@ export default function ClientsPage() {
   
   const filteredClients = mockClients.filter(client =>
     client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (client.email && client.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
     client.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    client.address.toLowerCase().includes(searchTerm.toLowerCase())
+    (client.address && client.address.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -94,17 +94,19 @@ export default function ClientsPage() {
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           <DropdownMenuItem>View Details</DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <a 
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="flex items-center"
-                            >
-                              <MapPin className="mr-2 h-4 w-4"/>
-                              View on Map
-                            </a>
-                          </DropdownMenuItem>
+                          {client.address && (
+                            <DropdownMenuItem asChild>
+                              <a 
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(client.address)}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="flex items-center"
+                              >
+                                <MapPin className="mr-2 h-4 w-4"/>
+                                View on Map
+                              </a>
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem>Edit</DropdownMenuItem>
                           <DropdownMenuItem className="text-destructive">
@@ -137,5 +139,3 @@ export default function ClientsPage() {
     </AppLayout>
   );
 }
-
-    
