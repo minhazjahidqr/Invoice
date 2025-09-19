@@ -8,9 +8,11 @@ import { Download, Share2, CreditCard } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const invoice = mockInvoices.find(inv => inv.id === params.id);
+  const companyLogo = PlaceHolderImages.find(img => img.id === 'company-logo');
 
   if (!invoice) {
     return (
@@ -41,7 +43,17 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                 <header className="grid grid-cols-2 gap-8 items-start mb-10">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                             <Icons.Logo className="w-10 h-10 text-primary" />
+                             {companyLogo ? (
+                                <Image 
+                                    src={companyLogo.imageUrl}
+                                    alt="Company Logo"
+                                    width={40}
+                                    height={40}
+                                    data-ai-hint={companyLogo.imageHint}
+                                />
+                             ) : (
+                                <Icons.Logo className="w-10 h-10 text-primary" />
+                             )}
                              <h2 className="font-headline text-2xl font-bold">QuoteCraft ELV</h2>
                         </div>
                         <p className="text-muted-foreground text-sm">123 Tech Avenue, Silicon Valley, CA 94043</p>
@@ -70,6 +82,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                                 <TableHead className="w-[50px]">SL</TableHead>
                                 <TableHead className="w-[80px]">Item Image</TableHead>
                                 <TableHead>Item Discription</TableHead>
+                                <TableHead>Brand Name</TableHead>
                                 <TableHead className="text-center">Quantity</TableHead>
                                 <TableHead className="text-right">Unit Price</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
@@ -90,6 +103,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                                         />
                                     </TableCell>
                                     <TableCell className="font-medium">{item.description}</TableCell>
+                                    <TableCell>{item.brandName}</TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
@@ -117,7 +131,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                             <span className="text-muted-foreground">Tax (5%)</span>
                             <span>{formatCurrency(tax)}</span>
                         </div>
-                        <div className="flex font-bold text-lg text-primary">
+                        <div className="font-bold text-lg text-primary flex justify-between">
                             <span>Amount Due</span>
                             <span>{formatCurrency(invoice.total)}</span>
                         </div>

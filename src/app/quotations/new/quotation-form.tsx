@@ -25,6 +25,7 @@ const formSchema = z.object({
   quotationDraft: z.string(),
   items: z.array(z.object({
     imageUrl: z.string().url().optional().or(z.literal('')),
+    brandName: z.string(),
     description: z.string().min(1, 'Description is required.'),
     quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
     unitPrice: z.coerce.number().min(0, 'Price must be positive.'),
@@ -56,12 +57,12 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
     name: "items",
   });
 
-  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>, index: number) => {
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>, index: number, fieldName: `items.${number}.imageUrl`) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        form.setValue(`items.${index}.imageUrl`, reader.result as string);
+        form.setValue(fieldName, reader.result as string);
       };
       reader.readAsDataURL(file);
     }
@@ -194,6 +195,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                     <TableHead className="w-[50px]">SL</TableHead>
                     <TableHead className="w-[120px]">Item Image</TableHead>
                     <TableHead>Item Discription</TableHead>
+                    <TableHead>Brand Name</TableHead>
                     <TableHead className="w-[100px]">Quantity</TableHead>
                     <TableHead className="w-[120px]">Unit Price</TableHead>
                     <TableHead className="w-[120px] text-right">Total</TableHead>
@@ -219,12 +221,12 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                               render={() => (
                                 <FormItem>
                                   <FormControl>
-                                      <Label htmlFor={`picture-${index}`} className="cursor-pointer inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
+                                      <Label htmlFor={`item-image-${index}`} className="cursor-pointer inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground">
                                           <Upload className="h-3 w-3" />
                                           <span>Upload</span>
                                       </Label>
                                   </FormControl>
-                                  <Input id={`picture-${index}`} type="file" className="sr-only" accept="image/*" onChange={(e) => handleImageUpload(e, index)} />
+                                  <Input id={`item-image-${index}`} type="file" className="sr-only" accept="image/*" onChange={(e) => handleImageUpload(e, index, `items.${index}.imageUrl`)} />
                                   <FormMessage/>
                                 </FormItem>
                               )}
@@ -233,6 +235,9 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                     </TableCell>
                     <TableCell>
                         <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => <Input {...field} placeholder="Item description"/>}/>
+                    </TableCell>
+                     <TableCell>
+                        <FormField control={form.control} name={`items.${index}.brandName`} render={({ field }) => <Input {...field} placeholder="Brand name"/>}/>
                     </TableCell>
                     <TableCell>
                         <FormField control={form.control} name={`items.${index}.quantity`} render={({ field }) => <Input type="number" {...field} />}/>
@@ -257,7 +262,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                 variant="outline"
                 size="sm"
                 className="mt-4"
-                onClick={() => append({ description: '', quantity: 1, unitPrice: 0, imageUrl: '' })}
+                onClick={() => append({ description: '', brandName: '', quantity: 1, unitPrice: 0, imageUrl: '' })}
             >
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Item
             </Button>
