@@ -195,7 +195,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                     <TableHead className="w-[50px]">SL</TableHead>
                     <TableHead>Item Discription</TableHead>
                     <TableHead>Brand Name</TableHead>
-                    <TableHead className="w-[120px]">Item Image</TableHead>
+                    <TableHead className="w-[120px]">Image</TableHead>
                     <TableHead className="w-[100px]">Quantity</TableHead>
                     <TableHead className="w-[120px]">Unit Price</TableHead>
                     <TableHead className="w-[120px] text-right">Total</TableHead>
