@@ -1,11 +1,14 @@
 
+'use client';
+
+import { useState } from 'react';
 import Link from "next/link";
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
-import { mockQuotations } from '@/lib/data';
+import { mockQuotations as initialQuotations, type Quotation } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -13,10 +16,12 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils";
+import { useToast } from '@/hooks/use-toast';
 
-const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
+const statusVariant: { [key in Quotation['status']]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   Approved: 'default',
   Sent: 'secondary',
   Draft: 'outline',
@@ -24,6 +29,19 @@ const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 
 };
 
 export default function QuotationsPage() {
+  const [quotations, setQuotations] = useState<Quotation[]>(initialQuotations);
+  const { toast } = useToast();
+
+  const handleStatusChange = (quotationId: string, newStatus: Quotation['status']) => {
+    setQuotations(quotations.map(quo =>
+      quo.id === quotationId ? { ...quo, status: newStatus } : quo
+    ));
+    toast({
+      title: 'Quotation Status Updated',
+      description: `Quotation ${quotationId} has been marked as ${newStatus}.`
+    });
+  };
+
   return (
     <AppLayout>
       <Card>
@@ -51,7 +69,7 @@ export default function QuotationsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockQuotations.map((quotation) => (
+              {quotations.map((quotation) => (
                 <TableRow key={quotation.id}>
                   <TableCell className="hidden font-medium sm:table-cell">
                     <Link href={`/quotations/${quotation.id}`} className="hover:underline">
@@ -86,6 +104,11 @@ export default function QuotationsPage() {
                         <DropdownMenuItem asChild>
                             <Link href={`/quotations/${quotation.id}`}>Download PDF</Link>
                         </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Approved')}>Mark as Approved</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Rejected')}>Mark as Rejected</DropdownMenuItem>
+                        <DropdownMenuSeparator />
                         <DropdownMenuItem className="text-destructive">
                           Delete
                         </DropdownMenuItem>
@@ -99,7 +122,7 @@ export default function QuotationsPage() {
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
-            Showing <strong>1-{mockQuotations.length}</strong> of <strong>{mockQuotations.length}</strong> quotations
+            Showing <strong>1-{quotations.length}</strong> of <strong>{quotations.length}</strong> quotations
           </div>
         </CardFooter>
       </Card>
