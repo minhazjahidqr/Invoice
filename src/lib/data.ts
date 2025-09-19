@@ -64,12 +64,14 @@ export type QuotationItem = {
   quantity: number;
   unitPrice: number;
   total: number;
+  imageUrl?: string;
+  imageHint?: string;
 };
 
 export const defaultQuotationItems: QuotationItem[] = [
-    { id: '1', description: 'Hikvision 8-Channel DVR', quantity: 1, unitPrice: 150, total: 150 },
-    { id: '2', description: '2MP Dome Camera', quantity: 4, unitPrice: 55, total: 220 },
-    { id: '3', description: '1TB Surveillance Hard Drive', quantity: 1, unitPrice: 60, total: 60 },
-    { id: '4', description: '100m CAT6 Cable', quantity: 1, unitPrice: 40, total: 40 },
-    { id: '5', description: 'Installation & Configuration Labor', quantity: 8, unitPrice: 75, total: 600 },
+    { id: '1', description: 'Hikvision 8-Channel DVR', quantity: 1, unitPrice: 150, total: 150, imageUrl: 'https://picsum.photos/seed/dvr/100/100', imageHint: 'security dvr' },
+    { id: '2', description: '2MP Dome Camera', quantity: 4, unitPrice: 55, total: 220, imageUrl: 'https://picsum.photos/seed/camera/100/100', imageHint: 'dome camera' },
+    { id: '3', description: '1TB Surveillance Hard Drive', quantity: 1, unitPrice: 60, total: 60, imageUrl: 'https://picsum.photos/seed/hdd/100/100', imageHint: 'hard drive' },
+    { id: '4', description: '100m CAT6 Cable', quantity: 1, unitPrice: 40, total: 40, imageUrl: 'https://picsum.photos/seed/cable/100/100', imageHint: 'ethernet cable' },
+    { id: '5', description: 'Installation & Configuration Labor', quantity: 8, unitPrice: 75, total: 600, imageUrl: 'https://picsum.photos/seed/labor/100/100', imageHint: 'technician working' },
 ];

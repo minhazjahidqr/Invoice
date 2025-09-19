@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Share2, CreditCard } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { formatCurrency } from '@/lib/utils';
+import Image from 'next/image';
 
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const invoice = mockInvoices.find(inv => inv.id === params.id);
@@ -66,6 +67,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className="w-[80px]">Image</TableHead>
                                 <TableHead>Description</TableHead>
                                 <TableHead className="text-center">Quantity</TableHead>
                                 <TableHead className="text-right">Unit Price</TableHead>
@@ -75,6 +77,16 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                         <TableBody>
                             {defaultQuotationItems.map(item => (
                                 <TableRow key={item.id}>
+                                    <TableCell>
+                                        <Image
+                                          src={item.imageUrl ?? 'https://picsum.photos/seed/placeholder/64/64'}
+                                          alt={item.description}
+                                          width={64}
+                                          height={64}
+                                          className="rounded-md object-cover"
+                                          data-ai-hint={item.imageHint}
+                                        />
+                                    </TableCell>
                                     <TableCell className="font-medium">{item.description}</TableCell>
                                     <TableCell className="text-center">{item.quantity}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(item.unitPrice)}</TableCell>
@@ -103,7 +115,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                             <span className="text-muted-foreground">Tax (5%)</span>
                             <span>{formatCurrency(tax)}</span>
                         </div>
-                        <div className="flex justify-between font-bold text-lg text-primary">
+                        <div className="flex font-bold text-lg text-primary">
                             <span>Amount Due</span>
                             <span>{formatCurrency(invoice.total)}</span>
                         </div>

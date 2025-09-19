@@ -16,12 +16,14 @@ import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2 } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
 import { defaultQuotationItems, type Client, type Project } from '@/lib/data';
+import Image from 'next/image';
 
 const formSchema = z.object({
   clientId: z.string().min(1, 'Client is required.'),
   projectId: z.string().min(1, 'Project is required.'),
   quotationDraft: z.string(),
   items: z.array(z.object({
+    imageUrl: z.string().url().optional().or(z.literal('')),
     description: z.string().min(1, 'Description is required.'),
     quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
     unitPrice: z.coerce.number().min(0, 'Price must be positive.'),
@@ -44,7 +46,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
 - 8-Channel DVR
 - 4x Dome Cameras
 - 1TB Hard Drive`,
-      items: defaultQuotationItems.map(({id, ...item}) => item),
+      items: defaultQuotationItems.map(({id, total, imageHint, ...item}) => item),
     },
   });
 
@@ -177,6 +179,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
             <Table>
                 <TableHeader>
                 <TableRow>
+                    <TableHead className="w-[120px]">Image</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead className="w-[100px]">Quantity</TableHead>
                     <TableHead className="w-[120px]">Unit Price</TableHead>
@@ -187,6 +190,18 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                 <TableBody>
                 {fields.map((field, index) => (
                     <TableRow key={field.id}>
+                    <TableCell>
+                        <div className="flex flex-col gap-2">
+                           <Image 
+                             src={form.watch(`items.${index}.imageUrl`) || 'https://picsum.photos/seed/placeholder/100/100'}
+                             alt={form.watch(`items.${index}.description`) || 'Item image'}
+                             width={64}
+                             height={64}
+                             className="rounded-md object-cover"
+                           />
+                           <FormField control={form.control} name={`items.${index}.imageUrl`} render={({ field }) => <Input {...field} placeholder="Image URL" className="text-xs h-8"/>}/>
+                        </div>
+                    </TableCell>
                     <TableCell>
                         <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => <Input {...field} placeholder="Item description"/>}/>
                     </TableCell>
@@ -213,7 +228,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                 variant="outline"
                 size="sm"
                 className="mt-4"
-                onClick={() => append({ description: '', quantity: 1, unitPrice: 0 })}
+                onClick={() => append({ description: '', quantity: 1, unitPrice: 0, imageUrl: '' })}
             >
                 <PlusCircle className="mr-2 h-4 w-4" /> Add Item
             </Button>
