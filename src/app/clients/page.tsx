@@ -10,7 +10,7 @@ import { mockClients, type Client } from '@/lib/data';
 import { MoreHorizontal, UserPlus, MapPin, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ClientForm } from './client-form';
 import { useToast } from '@/hooks/use-toast';
@@ -148,7 +148,7 @@ export default function ClientsPage() {
                                 Edit
                               </DropdownMenuItem>
                               <AlertDialogTrigger asChild>
-                                <DropdownMenuItem className="text-destructive">
+                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
                                   <Trash2 className="mr-2 h-4 w-4" />
                                   Delete
                                 </DropdownMenuItem>
