@@ -4,7 +4,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/app-layout';
-import { getFromStorage, saveToStorage, type Quotation, type Client, type Invoice, type QuotationItem } from '@/lib/data';
+import { getFromStorage, saveToStorage, type Quotation, type Client, type Invoice } from '@/lib/data';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -13,7 +13,6 @@ import { Download, Share2, FileCheck, Loader2 } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { formatCurrency } from '@/lib/utils';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from '@/hooks/use-toast';
@@ -22,7 +21,6 @@ import { defaultSettings, type SettingsFormValues } from '@/app/settings/setting
 export default function QuotationDetailPage({ params }: { params: { id: string } }) {
   const [quotation, setQuotation] = useState<Quotation | undefined>(undefined);
   const [client, setClient] = useState<Client | undefined>(undefined);
-  const companyLogo = PlaceHolderImages.find(img => img.id === 'company-logo');
   const quotationRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const router = useRouter();
@@ -162,13 +160,13 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                      {settings.headerBackgroundImage && <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>}
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-2">
-                             {companyLogo?.imageUrl ? (
+                             {settings.companyLogo ? (
                                 <Image 
-                                    src={companyLogo.imageUrl}
+                                    src={settings.companyLogo}
                                     alt="Company Logo"
                                     width={40}
                                     height={40}
-                                    data-ai-hint={companyLogo.imageHint}
+                                    data-ai-hint="company logo"
                                     className="object-contain bg-white/80 p-1 rounded"
                                 />
                              ) : (
@@ -283,3 +281,5 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     </AppLayout>
   );
 }
+
+    
