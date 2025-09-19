@@ -3,7 +3,7 @@ import { useState, useTransition } from 'react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -29,13 +29,6 @@ const formSchema = z.object({
 });
 
 type QuotationFormValues = z.infer<typeof formSchema>;
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-}
 
 export function QuotationForm({ clients, projects }: { clients: Client[], projects: Project[] }) {
   const [isSuggesting, startSuggestionTransition] = useTransition();

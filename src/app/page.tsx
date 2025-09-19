@@ -6,13 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { DollarSign, FileText, Receipt, ArrowUpRight } from 'lucide-react';
 import { mockInvoices, mockQuotations, type Quotation, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-}
+import { formatCurrency } from "@/lib/utils";
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   Paid: 'default',

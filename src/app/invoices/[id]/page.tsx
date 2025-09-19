@@ -1,18 +1,12 @@
 import { AppLayout } from '@/components/app-layout';
-import { mockInvoices, mockQuotations, defaultQuotationItems } from '@/lib/data';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { mockInvoices, defaultQuotationItems } from '@/lib/data';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Download, Share2, CreditCard } from 'lucide-react';
 import { Icons } from '@/components/icons';
-
-function formatCurrency(amount: number) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount);
-}
+import { formatCurrency } from '@/lib/utils';
 
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
   const invoice = mockInvoices.find(inv => inv.id === params.id);
