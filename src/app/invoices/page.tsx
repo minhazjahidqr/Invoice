@@ -80,9 +80,7 @@ export default function InvoicesPage() {
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden md:table-cell">
-                    {new Date(invoice.dueDate).toLocaleDate_STRING()
-//
-                    .toLocaleDateString()}
+                    {new Date(invoice.dueDate).toLocaleDateString()}
                   </TableCell>
                   <TableCell className="text-right">{formatCurrency(invoice.total)}</TableCell>
                   <TableCell>
