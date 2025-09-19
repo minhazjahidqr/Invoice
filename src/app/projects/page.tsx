@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { mockProjects, mockClients, type Project } from '@/lib/data';
+import { mockProjects, mockClients, saveProjects, type Project, type Client } from '@/lib/data';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -15,13 +15,42 @@ import { useToast } from '@/hooks/use-toast';
 import { ProjectForm } from './project-form';
 
 export default function ProjectsPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const handleProjectSave = (project: Omit<Project, 'id'>) => {
-    // In a real app, you would handle saving the data to your backend
-    console.log('Saving project:', project);
+  useEffect(() => {
+    setProjects(mockProjects);
+    setClients(mockClients);
+
+    const handleStorageChange = () => {
+      // This is a bit of a hack to re-read from our "database" (localStorage)
+      const newClients = JSON.parse(localStorage.getItem('clients') || '[]');
+      const newProjects = JSON.parse(localStorage.getItem('projects') || '[]');
+      setClients(newClients);
+      setProjects(newProjects);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const updateProjects = (newProjects: Project[]) => {
+    setProjects(newProjects);
+    saveProjects(newProjects);
+  }
+
+  const handleProjectSave = (project: Omit<Project, 'id'> & { id?: string }) => {
+    let newProjects;
+    if (project.id) {
+      newProjects = projects.map(p => p.id === project.id ? project as Project : p);
+    } else {
+      const newProject = { ...project, id: `proj-${Date.now()}` } as Project;
+      newProjects = [newProject, ...projects];
+    }
+    updateProjects(newProjects);
     toast({
       title: 'Project Saved',
       description: `The details for ${project.name} have been saved.`
@@ -30,10 +59,10 @@ export default function ProjectsPage() {
   };
   
   const getClientName = (clientId: string) => {
-    return mockClients.find(c => c.id === clientId)?.name || 'Unknown Client';
+    return clients.find(c => c.id === clientId)?.name || 'Unknown Client';
   }
 
-  const filteredProjects = mockProjects.filter(project =>
+  const filteredProjects = projects.filter(project =>
     project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     getClientName(project.clientId).toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -118,7 +147,7 @@ export default function ProjectsPage() {
               Fill in the details below to create a new project.
             </DialogDescription>
           </DialogHeader>
-          <ProjectForm onSave={handleProjectSave} clients={mockClients} />
+          <ProjectForm onSave={handleProjectSave} clients={clients} />
         </DialogContent>
       </Dialog>
     </AppLayout>

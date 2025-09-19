@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Receipt, ArrowUpRight, MoreHorizontal, DollarSign } from 'lucide-react';
-import { mockInvoices as initialInvoices, mockQuotations as initialQuotations, type Quotation, type Invoice } from '@/lib/data';
+import { mockInvoices, mockQuotations, saveInvoices, saveQuotations, type Quotation, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -36,8 +36,8 @@ const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 
 
 
 export default function DashboardPage() {
-  const [quotations, setQuotations] = useState<Quotation[]>(initialQuotations);
-  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  const [quotations, setQuotations] = useState<Quotation[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const { toast } = useToast();
 
   const [date, setDate] = useState<DateRange | undefined>({
@@ -45,10 +45,37 @@ export default function DashboardPage() {
     to: new Date(),
   });
 
+  useEffect(() => {
+    setQuotations(mockQuotations);
+    setInvoices(mockInvoices);
+
+    const handleStorageChange = () => {
+      // This is a bit of a hack to re-read from our "database" (localStorage)
+      const newQuotations = JSON.parse(localStorage.getItem('quotations') || '[]');
+      const newInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+      setQuotations(newQuotations);
+      setInvoices(newInvoices);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const updateQuotations = (newQuotations: Quotation[]) => {
+    setQuotations(newQuotations);
+    saveQuotations(newQuotations);
+  };
+
+  const updateInvoices = (newInvoices: Invoice[]) => {
+    setInvoices(newInvoices);
+    saveInvoices(newInvoices);
+  }
+
   const handleQuotationStatusChange = (quotationId: string, newStatus: Quotation['status']) => {
-    setQuotations(quotations.map(quo =>
+    const newQuotations = quotations.map(quo =>
       quo.id === quotationId ? { ...quo, status: newStatus } : quo
-    ));
+    );
+    updateQuotations(newQuotations);
     toast({
       title: 'Quotation Status Updated',
       description: `Quotation ${quotationId} has been marked as ${newStatus}.`
@@ -56,9 +83,10 @@ export default function DashboardPage() {
   };
   
   const handleInvoiceStatusChange = (invoiceId: string, newStatus: Invoice['status']) => {
-    setInvoices(invoices.map(inv => 
+    const newInvoices = invoices.map(inv => 
       inv.id === invoiceId ? { ...inv, status: newStatus } : inv
-    ));
+    );
+    updateInvoices(newInvoices);
     toast({
       title: 'Invoice Status Updated',
       description: `Invoice ${invoiceId} has been marked as ${newStatus}.`

@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
-import { mockInvoices as initialInvoices, type Invoice } from '@/lib/data';
+import { mockInvoices, saveInvoices, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,13 +29,23 @@ const statusVariant: { [key in Invoice['status']]: 'default' | 'secondary' | 'de
 };
 
 export default function InvoicesPage() {
-  const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const { toast } = useToast();
 
+  useEffect(() => {
+    setInvoices(mockInvoices);
+  }, []);
+
+  const updateInvoices = (newInvoices: Invoice[]) => {
+    setInvoices(newInvoices);
+    saveInvoices(newInvoices);
+  }
+
   const handleStatusChange = (invoiceId: string, newStatus: Invoice['status']) => {
-    setInvoices(invoices.map(inv => 
+    const newInvoices = invoices.map(inv => 
       inv.id === invoiceId ? { ...inv, status: newStatus } : inv
-    ));
+    )
+    updateInvoices(newInvoices);
     toast({
       title: 'Invoice Status Updated',
       description: `Invoice ${invoiceId} has been marked as ${newStatus}.`

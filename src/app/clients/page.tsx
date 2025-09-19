@@ -1,12 +1,12 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { mockClients, type Client } from '@/lib/data';
+import { mockClients, saveClients, type Client } from '@/lib/data';
 import { MoreHorizontal, UserPlus, MapPin, Trash2, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -16,22 +16,35 @@ import { ClientForm } from './client-form';
 import { useToast } from '@/hooks/use-toast';
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>(undefined);
   const { toast } = useToast();
 
-  const handleClientSave = (clientToSave: Client) => {
+  useEffect(() => {
+    // mockClients is now loaded from localStorage in data.ts
+    setClients(mockClients);
+  }, []);
+
+  const updateClients = (newClients: Client[]) => {
+    setClients(newClients);
+    saveClients(newClients);
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  const handleClientSave = (clientToSave: Client & { id?: string }) => {
     let message = '';
+    let newClients;
     if (clientToSave.id && clients.some(c => c.id === clientToSave.id)) {
-      setClients(clients.map(c => c.id === clientToSave.id ? clientToSave : c));
+      newClients = clients.map(c => c.id === clientToSave.id ? clientToSave as Client : c);
       message = `The details for ${clientToSave.name} have been updated.`;
     } else {
-      const newClient = { ...clientToSave, id: `cli-${Date.now()}` };
-      setClients([newClient, ...clients]);
+      const newClient = { ...clientToSave, id: `cli-${Date.now()}` } as Client;
+      newClients = [newClient, ...clients];
       message = `Client ${newClient.name} has been added.`;
     }
+    updateClients(newClients);
     toast({
       title: 'Client Saved',
       description: message,
@@ -44,7 +57,8 @@ export default function ClientsPage() {
     const clientToDelete = clients.find(c => c.id === clientId);
     if (!clientToDelete) return;
 
-    setClients(clients.filter(c => c.id !== clientId));
+    const newClients = clients.filter(c => c.id !== clientId)
+    updateClients(newClients);
     toast({
       title: 'Client Deleted',
       description: `The client ${clientToDelete.name} has been deleted.`,

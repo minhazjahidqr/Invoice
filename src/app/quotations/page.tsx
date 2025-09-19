@@ -1,14 +1,14 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from "next/link";
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal } from 'lucide-react';
-import { mockQuotations as initialQuotations, type Quotation } from '@/lib/data';
+import { mockQuotations, saveQuotations, type Quotation } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -29,13 +29,23 @@ const statusVariant: { [key in Quotation['status']]: 'default' | 'secondary' | '
 };
 
 export default function QuotationsPage() {
-  const [quotations, setQuotations] = useState<Quotation[]>(initialQuotations);
+  const [quotations, setQuotations] = useState<Quotation[]>([]);
   const { toast } = useToast();
 
+  useEffect(() => {
+    setQuotations(mockQuotations);
+  }, []);
+
+  const updateQuotations = (newQuotations: Quotation[]) => {
+    setQuotations(newQuotations);
+    saveQuotations(newQuotations);
+  };
+
   const handleStatusChange = (quotationId: string, newStatus: Quotation['status']) => {
-    setQuotations(quotations.map(quo =>
+    const newQuotations = quotations.map(quo =>
       quo.id === quotationId ? { ...quo, status: newStatus } : quo
-    ));
+    );
+    updateQuotations(newQuotations);
     toast({
       title: 'Quotation Status Updated',
       description: `Quotation ${quotationId} has been marked as ${newStatus}.`

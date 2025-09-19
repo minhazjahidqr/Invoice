@@ -1,3 +1,4 @@
+
 export type Quotation = {
   id: string;
   client: string;
@@ -32,20 +33,20 @@ export type Project = {
   clientId: string;
 }
 
-export const mockClients: Client[] = [
+const initialMockClients: Client[] = [
   { id: 'cli-1', name: 'Innovate Corp', email: 'contact@innovatecorp.com', phone: '+1-202-555-0149', address: '123 Innovation Drive, Tech City' },
   { id: 'cli-2', name: 'Quantum Solutions', email: 'hello@quantumsolutions.dev', phone: '+1-202-555-0128', address: '456 Quantum Way, Silicon Valley' },
   { id: 'cli-3', name: 'Apex Industries', email: 'info@apexindustries.net', phone: '+1-202-555-0182', address: '789 Apex Lane, Industrial Park' },
 ];
 
-export const mockProjects: Project[] = [
+const initialMockProjects: Project[] = [
     { id: 'proj-1', name: 'Office Security Upgrade', clientId: 'cli-1' },
     { id: 'proj-2', name: 'New HQ Network Setup', clientId: 'cli-2' },
     { id: 'proj-3', name: 'Warehouse Surveillance System', clientId: 'cli-3' },
     { id: 'proj-4', name: 'Retail Store Audio System', clientId: 'cli-1' },
 ];
 
-export const mockQuotations: Quotation[] = [
+const initialMockQuotations: Quotation[] = [
   { id: 'Q-2024-001', client: 'Innovate Corp', projectName: 'Office Security Upgrade', date: '2024-07-15', total: 12500, status: 'Approved' },
   { id: 'Q-2024-002', client: 'Quantum Solutions', projectName: 'New HQ Network Setup', date: '2024-07-18', total: 25000, status: 'Sent' },
   { id: 'Q-2024-003', client: 'Apex Industries', projectName: 'Warehouse Surveillance System', date: '2024-07-20', total: 8500, status: 'Draft' },
@@ -53,12 +54,58 @@ export const mockQuotations: Quotation[] = [
   { id: 'Q-2024-005', client: 'Quantum Solutions', projectName: 'Phase 2 Network Expansion', date: '2024-07-25', total: 18000, status: 'Sent' },
 ];
 
-export const mockInvoices: Invoice[] = [
+const initialMockInvoices: Invoice[] = [
   { id: 'INV-2024-001', quotationId: 'Q-2024-001', client: 'Innovate Corp', projectName: 'Office Security Upgrade', date: '2024-07-20', dueDate: '2024-08-19', total: 12500, status: 'Sent' },
   { id: 'INV-2024-002', quotationId: 'Q-2023-015', client: 'Old Client LLC', projectName: 'Legacy System Maintenance', date: '2024-06-10', dueDate: '2024-07-10', total: 1500, status: 'Paid' },
   { id: 'INV-2024-003', quotationId: 'Q-2024-000', client: 'Another Company', projectName: 'Fire Alarm Inspection', date: '2024-05-01', dueDate: '2024-05-31', total: 800, status: 'Overdue' },
   { id: 'INV-2024-004', quotationId: 'Q-2023-018', client: 'Ongoing Partner', projectName: 'Q2 Support Contract', date: '2024-07-01', dueDate: '2024-07-31', total: 3000, status: 'Paid' },
 ];
+
+function getFromStorage<T>(key: string, fallback: T): T {
+    if (typeof window === 'undefined') return fallback;
+    const stored = window.localStorage.getItem(key);
+    if (stored) {
+        try {
+            return JSON.parse(stored);
+        } catch (e) {
+            console.error(`Error parsing localStorage key "${key}":`, e);
+            return fallback;
+        }
+    }
+    return fallback;
+}
+
+function saveToStorage<T>(key: string, data: T) {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(key, JSON.stringify(data));
+}
+
+export const mockClients: Client[] = getFromStorage('clients', initialMockClients);
+export const mockProjects: Project[] = getFromStorage('projects', initialMockProjects);
+export const mockQuotations: Quotation[] = getFromStorage('quotations', initialMockQuotations);
+export const mockInvoices: Invoice[] = getFromStorage('invoices', initialMockInvoices);
+
+export const saveClients = (clients: Client[]) => saveToStorage('clients', clients);
+export const saveProjects = (projects: Project[]) => saveToStorage('projects', projects);
+export const saveQuotations = (quotations: Quotation[]) => saveToStorage('quotations', quotations);
+export const saveInvoices = (invoices: Invoice[]) => saveToStorage('invoices', invoices);
+
+// Initialize storage if it's empty
+if (typeof window !== 'undefined') {
+    if (!window.localStorage.getItem('clients')) {
+        saveClients(initialMockClients);
+    }
+    if (!window.localStorage.getItem('projects')) {
+        saveProjects(initialMockProjects);
+    }
+    if (!window.localStorage.getItem('quotations')) {
+        saveQuotations(initialMockQuotations);
+    }
+    if (!window.localStorage.getItem('invoices')) {
+        saveInvoices(initialMockInvoices);
+    }
+}
+
 
 export type QuotationItem = {
   id: string;

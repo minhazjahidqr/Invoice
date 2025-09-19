@@ -1,14 +1,25 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { QuotationForm } from './quotation-form';
 import { mockClients, type Client } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function NewQuotationPage() {
-  const [clients, setClients] = useState<Client[]>(mockClients);
+  const [clients, setClients] = useState<Client[]>([]);
+
+  useEffect(() => {
+    setClients(mockClients);
+    const handleStorageChange = () => {
+      const newClients = JSON.parse(localStorage.getItem('clients') || '[]');
+      setClients(newClients);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const handleClientsUpdate = (updatedClients: Client[]) => {
     setClients(updatedClients);
