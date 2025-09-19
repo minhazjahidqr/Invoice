@@ -37,7 +37,13 @@ const formSchema = z.object({
 
 type QuotationFormValues = z.infer<typeof formSchema>;
 
-export function QuotationForm({ clients, projects }: { clients: Client[], projects: Project[] }) {
+interface QuotationFormProps {
+  clients: Client[];
+  projects: Project[];
+  onClientsUpdate: (clients: Client[]) => void;
+}
+
+export function QuotationForm({ clients, projects, onClientsUpdate }: QuotationFormProps) {
   const [isSuggesting, startSuggestionTransition] = useTransition();
   const [suggestions, setSuggestions] = useState('');
   const { toast } = useToast();
@@ -100,15 +106,32 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
     });
   };
 
-  function onClientSaved(client: Client) {
-    // In a real app, you'd properly update the client list.
-    // For now, we just show a toast and close the dialog.
-    const action = editingClient ? 'updated' : 'created';
+  function onClientSaved(client: Client & { id?: string }) {
+    let updatedClients;
+    let message = '';
+    let newClientId;
+  
+    if (client.id && clients.some(c => c.id === client.id)) {
+      // Update existing client
+      updatedClients = clients.map(c => (c.id === client.id ? client as Client : c));
+      message = `Client "${client.name}" has been updated.`;
+      newClientId = client.id;
+    } else {
+      // Add new client
+      const newClient = { ...client, id: `cli-${Date.now()}` };
+      updatedClients = [newClient, ...clients];
+      message = `Client "${client.name}" has been created.`;
+      newClientId = newClient.id;
+    }
+    
+    onClientsUpdate(updatedClients);
+    form.setValue('clientId', newClientId);
     toast({
-      title: `Client ${action}`,
-      description: `Client "${client.name}" has been ${action} successfully.`
+      title: 'Client Saved',
+      description: message,
     });
     setClientFormOpen(false);
+    setEditingClient(undefined);
   }
 
   function onSubmit(data: QuotationFormValues) {
@@ -136,7 +159,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                   name="clientId"
                   render={({ field }) => (
                     <FormItem className="flex-grow">
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger><SelectValue placeholder="Select a client" /></SelectTrigger>
                         </FormControl>
@@ -360,5 +383,3 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
     </Dialog>
   );
 }
-
-    
