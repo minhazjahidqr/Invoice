@@ -131,97 +131,110 @@ export default function QuotationsPage() {
     <AppLayout>
       <Card>
         <CardHeader>
-          <CardTitle className="font-headline">Quotations</CardTitle>
-          <CardDescription>
-            Manage your quotations and track their status.
-          </CardDescription>
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+              <CardTitle className="font-headline">Quotations</CardTitle>
+              <CardDescription>
+                Manage your quotations and track their status.
+              </CardDescription>
+            </div>
+            <Button asChild className="w-full md:w-auto">
+              <Link href="/quotations/new">Create New Quotation</Link>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="hidden w-[100px] sm:table-cell">
-                  ID
-                </TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead className="hidden md:table-cell">Project</TableHead>
-                <TableHead className="hidden md:table-cell">Status</TableHead>
-                <TableHead className="hidden lg:table-cell">Date</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {quotations.map((quotation) => (
-                <TableRow key={quotation.id}>
-                  <TableCell className="hidden font-medium sm:table-cell">
-                    <Link href={`/quotations/${quotation.id}`} className="hover:underline">
-                        {quotation.id}
-                    </Link>
-                  </TableCell>
-                  <TableCell className="font-medium">{getClientName(quotation.clientId)}</TableCell>
-                  <TableCell className="hidden md:table-cell">{quotation.projectName}</TableCell>
-                  <TableCell className="hidden md:table-cell">
-                    <Badge variant={statusVariant[quotation.status]}>
-                      {quotation.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    {new Date(quotation.date).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">{formatCurrency(quotation.total)}</TableCell>
-                  <TableCell>
-                    <AlertDialog>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                              <Link href={`/quotations/${quotation.id}`}>View Details</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleConvertToInvoice(quotation)}>Convert to Invoice</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDownloadPdf(quotation.id)}>Download PDF</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Approved')}>Mark as Approved</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Rejected')}>Mark as Rejected</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                           <AlertDialogTrigger asChild>
-                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                           </AlertDialogTrigger>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                       <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete the quotation
-                              &quot;{quotation.id}&quot;.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteQuotation(quotation.id)}>
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="hidden w-[100px] sm:table-cell">
+                    ID
+                  </TableHead>
+                  <TableHead>Client</TableHead>
+                  <TableHead className="hidden md:table-cell">Project</TableHead>
+                  <TableHead className="hidden lg:table-cell">Status</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="text-right">
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {quotations.map((quotation) => (
+                  <TableRow key={quotation.id}>
+                    <TableCell className="hidden font-medium sm:table-cell">
+                      <Link href={`/quotations/${quotation.id}`} className="hover:underline">
+                          {quotation.id}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium">{getClientName(quotation.clientId)}</div>
+                      <div className="text-sm text-muted-foreground md:hidden">{quotation.projectName}</div>
+                      <div className="text-sm text-muted-foreground lg:hidden mt-1">
+                          <Badge variant={statusVariant[quotation.status]}>
+                              {quotation.status}
+                          </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{quotation.projectName}</TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <Badge variant={statusVariant[quotation.status]}>
+                        {quotation.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">{formatCurrency(quotation.total)}</TableCell>
+                    <TableCell className="text-right">
+                      <AlertDialog>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/quotations/${quotation.id}`}>View Details</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleConvertToInvoice(quotation)}>Convert to Invoice</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDownloadPdf(quotation.id)}>Download PDF</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Approved')}>Mark as Approved</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleStatusChange(quotation.id, 'Rejected')}>Mark as Rejected</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                             <AlertDialogTrigger asChild>
+                                  <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                             </AlertDialogTrigger>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                         <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the quotation
+                                &quot;{quotation.id}&quot;.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDeleteQuotation(quotation.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">

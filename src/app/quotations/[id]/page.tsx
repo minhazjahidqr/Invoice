@@ -144,8 +144,10 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     <AppLayout>
         <div className="max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
-                <h1 className="font-headline text-2xl font-bold shrink-0">Quotation {quotation.id}</h1>
-                <div className="flex items-center gap-2 w-full justify-start md:justify-end flex-wrap">
+                <div className="flex-1">
+                    <h1 className="font-headline text-2xl font-bold shrink-0">Quotation {quotation.id}</h1>
+                </div>
+                <div className="flex items-center gap-2 w-full justify-start md:w-auto md:justify-end flex-wrap">
                     <Button variant="outline" onClick={handleDownloadPdf} disabled={isDownloading}>
                         {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4"/>}
                          PDF

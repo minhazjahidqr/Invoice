@@ -192,69 +192,71 @@ export default function DashboardPage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Type</TableHead>
-                      <TableHead className="hidden sm:table-cell">Client</TableHead>
-                      <TableHead className="hidden sm:table-cell">Status</TableHead>
-                      <TableHead className="hidden md:table-cell">Date</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead><span className="sr-only">Actions</span></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentActivity.map((item) => {
-                      return (
-                        <TableRow key={`${item.type}-${item.id}`}>
-                          <TableCell>
-                            <div className="font-medium">{item.type}</div>
-                            <div className="text-sm text-muted-foreground md:hidden">{getClientName(item.clientId)}</div>
-                          </TableCell>
-                          <TableCell className="hidden sm:table-cell">{getClientName(item.clientId)}</TableCell>
-                          <TableCell className="hidden sm:table-cell">
-                            <Badge className="text-xs" variant={statusVariant[item.status]}>
-                              {item.status}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="hidden md:table-cell">{new Date(item.date).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button aria-haspopup="true" size="icon" variant="ghost">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">Toggle menu</span>
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                {item.type === 'Invoice' ? (
-                                  <>
-                                    <DropdownMenuItem asChild><Link href={`/invoices/${item.id}`}>View Details</Link></DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => handleInvoiceStatusChange(item.id, 'Paid')}>Mark as Paid</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleInvoiceStatusChange(item.id, 'Pending')}>Mark as Pending</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleInvoiceStatusChange(item.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
-                                  </>
-                                ) : (
-                                  <>
-                                    <DropdownMenuItem asChild><Link href={`/quotations/${item.id}`}>View Details</Link></DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Approved')}>Mark as Approved</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Rejected')}>Mark as Rejected</DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Draft')}>Mark as Draft</DropdownMenuItem>
-                                  </>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Client</TableHead>
+                        <TableHead className="hidden sm:table-cell">Type</TableHead>
+                        <TableHead className="hidden md:table-cell">Status</TableHead>
+                        <TableHead className="hidden lg:table-cell">Date</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="text-right"><span className="sr-only">Actions</span></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentActivity.map((item) => {
+                        return (
+                          <TableRow key={`${item.type}-${item.id}`}>
+                            <TableCell>
+                              <div className="font-medium">{getClientName(item.clientId)}</div>
+                              <div className="text-sm text-muted-foreground sm:hidden">{item.type} - {new Date(item.date).toLocaleDateString()}</div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell">{item.type}</TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              <Badge className="text-xs" variant={statusVariant[item.status]}>
+                                {item.status}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell">{new Date(item.date).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-right">{formatCurrency(item.total)}</TableCell>
+                            <TableCell className="text-right">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button aria-haspopup="true" size="icon" variant="ghost">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                    <span className="sr-only">Toggle menu</span>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                  {item.type === 'Invoice' ? (
+                                    <>
+                                      <DropdownMenuItem asChild><Link href={`/invoices/${item.id}`}>View Details</Link></DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => handleInvoiceStatusChange(item.id, 'Paid')}>Mark as Paid</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleInvoiceStatusChange(item.id, 'Pending')}>Mark as Pending</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleInvoiceStatusChange(item.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <DropdownMenuItem asChild><Link href={`/quotations/${item.id}`}>View Details</Link></DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Approved')}>Mark as Approved</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Rejected')}>Mark as Rejected</DropdownMenuItem>
+                                      <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Draft')}>Mark as Draft</DropdownMenuItem>
+                                    </>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
                  {recentActivity.length === 0 && (
                   <div className="text-center py-10 text-muted-foreground">
                       No activity found for the selected date range.

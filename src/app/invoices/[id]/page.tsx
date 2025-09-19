@@ -129,8 +129,10 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
         <Dialog open={isItemFormOpen} onOpenChange={setIsItemFormOpen}>
             <div className="max-w-4xl mx-auto">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-4 gap-4">
-                    <h1 className="font-headline text-2xl font-bold shrink-0">Invoice {invoice.id}</h1>
-                    <div className="flex items-center gap-2 w-full justify-start md:justify-end flex-wrap">
+                    <div className="flex-1">
+                        <h1 className="font-headline text-2xl font-bold shrink-0">Invoice {invoice.id}</h1>
+                    </div>
+                    <div className="flex items-center gap-2 w-full justify-start md:w-auto md:justify-end flex-wrap">
                         <Button variant="outline" onClick={handleDownloadPdf} disabled={isDownloading}>
                             {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4"/>}
                             PDF
@@ -255,7 +257,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                     </footer>
                 </Card>
             </div>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-4xl w-[95vw] sm:w-full rounded-md">
                 <DialogHeader>
                     <DialogTitle>Edit Invoice Items</DialogTitle>
                     <DialogDescription>
