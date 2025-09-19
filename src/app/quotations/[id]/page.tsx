@@ -131,7 +131,6 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
   }
   
   const subtotal = (quotation.items || []).reduce((acc, item) => acc + item.total, 0);
-  const tax = subtotal * 0.05;
 
   const headerStyle = settings.headerBackgroundImage
     ? {
@@ -251,10 +250,6 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">Subtotal</span>
                             <span>{formatCurrency(subtotal)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="text-muted-foreground">Tax (5%)</span>
-                            <span>{formatCurrency(tax)}</span>
                         </div>
                         <div className="font-bold text-lg text-primary flex justify-between">
                             <span>Total</span>

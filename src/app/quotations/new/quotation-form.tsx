@@ -154,9 +154,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
         total: item.quantity * item.unitPrice,
     }))
 
-    const subtotal = updatedItems.reduce((acc, item) => acc + item.total, 0);
-    const tax = subtotal * 0.05;
-    const total = subtotal + tax;
+    const total = updatedItems.reduce((acc, item) => acc + item.total, 0);
     
     const existingQuotations = getFromStorage<Quotation[]>('quotations', []);
 
@@ -183,9 +181,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
   }
   
   const watchedItems = form.watch('items');
-  const subtotal = watchedItems.reduce((acc, item) => acc + ((item.quantity || 0) * (item.unitPrice || 0)), 0);
-  const tax = subtotal * 0.05; // 5% tax
-  const total = subtotal + tax;
+  const total = watchedItems.reduce((acc, item) => acc + ((item.quantity || 0) * (item.unitPrice || 0)), 0);
 
   return (
     <Dialog open={clientFormOpen} onOpenChange={setClientFormOpen}>
@@ -394,14 +390,6 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
 
           <div className="flex justify-end">
               <div className="w-full max-w-sm space-y-2">
-                  <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span>{formatCurrency(subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                      <span className="text-muted-foreground">Tax (5%)</span>
-                      <span>{formatCurrency(tax)}</span>
-                  </div>
                   <div className="flex justify-between font-semibold text-lg">
                       <span>Total</span>
                       <span>{formatCurrency(total)}</span>
