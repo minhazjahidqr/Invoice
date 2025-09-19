@@ -1,0 +1,254 @@
+'use client';
+import { useState, useTransition } from 'react';
+import { useFieldArray, useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { cn } from '@/lib/utils';
+
+import { Button } from '@/components/ui/button';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2 } from 'lucide-react';
+import { suggestElvComponentsAction } from '../actions';
+import { useToast } from '@/hooks/use-toast';
+import { defaultQuotationItems, type Client, type Project } from '@/lib/data';
+
+const formSchema = z.object({
+  clientId: z.string().min(1, 'Client is required.'),
+  projectId: z.string().min(1, 'Project is required.'),
+  quotationDraft: z.string(),
+  items: z.array(z.object({
+    description: z.string().min(1, 'Description is required.'),
+    quantity: z.coerce.number().min(1, 'Quantity must be at least 1.'),
+    unitPrice: z.coerce.number().min(0, 'Price must be positive.'),
+  })).min(1, 'At least one item is required.'),
+});
+
+type QuotationFormValues = z.infer<typeof formSchema>;
+
+function formatCurrency(amount: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(amount);
+}
+
+export function QuotationForm({ clients, projects }: { clients: Client[], projects: Project[] }) {
+  const [isSuggesting, startSuggestionTransition] = useTransition();
+  const [suggestions, setSuggestions] = useState('');
+  const { toast } = useToast();
+
+  const form = useForm<QuotationFormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      clientId: '',
+      projectId: '',
+      quotationDraft: `CCTV System:
+- 8-Channel DVR
+- 4x Dome Cameras
+- 1TB Hard Drive`,
+      items: defaultQuotationItems.map(({id, ...item}) => item),
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "items",
+  });
+
+  const handleSuggest = () => {
+    const draft = form.getValues('quotationDraft');
+    if (!draft.trim()) {
+      toast({
+        title: 'Draft is empty',
+        description: 'Please write a draft before asking for suggestions.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    startSuggestionTransition(async () => {
+      try {
+        const result = await suggestElvComponentsAction({ quotationDraft: draft });
+        setSuggestions(result.suggestedComponents);
+      } catch (error) {
+        toast({
+          title: 'Error getting suggestions',
+          description: (error as Error).message,
+          variant: 'destructive',
+        });
+      }
+    });
+  };
+
+  function onSubmit(data: QuotationFormValues) {
+    console.log(data);
+    toast({
+      title: "Quotation Created!",
+      description: "The quotation has been saved successfully.",
+    });
+  }
+  
+  const subtotal = form.watch('items').reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+  const tax = subtotal * 0.05; // 5% tax
+  const total = subtotal + tax;
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <div className="grid md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="clientId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Client</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue placeholder="Select a client" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {clients.map(client => <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="projectId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Project</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger><SelectValue placeholder="Select a project" /></SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {projects.map(project => <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2"><BrainCircuit className="text-primary"/> Smart Suggestions</CardTitle>
+            <CardDescription>Write a draft of the required components, and our AI will suggest any missing items.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+                <FormField
+                    control={form.control}
+                    name="quotationDraft"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Quotation Draft</FormLabel>
+                            <FormControl>
+                                <Textarea {...field} rows={8} placeholder="e.g., 1x 8-port Switch, 4x IP Cameras..." />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                <Button type="button" onClick={handleSuggest} disabled={isSuggesting}>
+                    {isSuggesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                    Suggest Components
+                </Button>
+            </div>
+            <div className={cn("rounded-lg bg-muted/50 p-4 transition-opacity", suggestions || isSuggesting ? 'opacity-100' : 'opacity-50')}>
+                <h3 className="font-semibold mb-2">Suggestions</h3>
+                {isSuggesting && <div className="flex items-center text-sm text-muted-foreground"><Loader2 className="mr-2 h-4 w-4 animate-spin" />Generating...</div>}
+                {suggestions ? (
+                    <div className="text-sm prose prose-sm prose-p:my-1 prose-ul:my-1 text-foreground">{suggestions}</div>
+                ) : !isSuggesting && (
+                    <p className="text-sm text-muted-foreground italic">AI suggestions will appear here.</p>
+                )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+            <CardHeader>
+                <CardTitle>Line Items</CardTitle>
+                <CardDescription>Add the products and services for this quotation.</CardDescription>
+            </CardHeader>
+            <CardContent>
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead className="w-[100px]">Quantity</TableHead>
+                    <TableHead className="w-[120px]">Unit Price</TableHead>
+                    <TableHead className="w-[120px] text-right">Total</TableHead>
+                    <TableHead className="w-[50px]"><span className="sr-only">Actions</span></TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {fields.map((field, index) => (
+                    <TableRow key={field.id}>
+                    <TableCell>
+                        <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => <Input {...field} placeholder="Item description"/>}/>
+                    </TableCell>
+                    <TableCell>
+                        <FormField control={form.control} name={`items.${index}.quantity`} render={({ field }) => <Input type="number" {...field} />}/>
+                    </TableCell>
+                    <TableCell>
+                        <FormField control={form.control} name={`items.${index}.unitPrice`} render={({ field }) => <Input type="number" {...field} />}/>
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                        {formatCurrency((form.watch(`items.${index}.quantity`) || 0) * (form.watch(`items.${index}.unitPrice`) || 0))}
+                    </TableCell>
+                    <TableCell>
+                        <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                    </TableCell>
+                    </TableRow>
+                ))}
+                </TableBody>
+            </Table>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={() => append({ description: '', quantity: 1, unitPrice: 0 })}
+            >
+                <PlusCircle className="mr-2 h-4 w-4" /> Add Item
+            </Button>
+            </CardContent>
+        </Card>
+
+        <div className="flex justify-end">
+            <div className="w-full max-w-sm space-y-2">
+                <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{formatCurrency(subtotal)}</span>
+                </div>
+                <div className="flex justify-between">
+                    <span className="text-muted-foreground">Tax (5%)</span>
+                    <span>{formatCurrency(tax)}</span>
+                </div>
+                <div className="flex justify-between font-semibold text-lg">
+                    <span>Total</span>
+                    <span>{formatCurrency(total)}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline">Save Draft</Button>
+            <Button type="submit">Create & Send Quotation</Button>
+        </div>
+      </form>
+    </Form>
+  );
+}
