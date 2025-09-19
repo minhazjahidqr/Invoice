@@ -109,8 +109,10 @@ export function updateUser(updatedUser: User): User[] {
          if (typeof window !== 'undefined') {
             const { password, ...userToStore } = updatedUser;
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
+            window.dispatchEvent(new Event('storage'));
         }
     }
     
     return newUsers;
 }
+
