@@ -67,8 +67,8 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-[80px]">Image</TableHead>
-                                <TableHead>Description</TableHead>
+                                <TableHead className="w-[80px]">Item Image</TableHead>
+                                <TableHead>Item Discription</TableHead>
                                 <TableHead className="text-center">Quantity</TableHead>
                                 <TableHead className="text-right">Unit Price</TableHead>
                                 <TableHead className="text-right">Total</TableHead>
