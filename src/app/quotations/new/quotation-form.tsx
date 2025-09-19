@@ -191,6 +191,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
             <Table>
                 <TableHeader>
                 <TableRow>
+                    <TableHead className="w-[50px]">SL</TableHead>
                     <TableHead className="w-[120px]">Item Image</TableHead>
                     <TableHead>Item Discription</TableHead>
                     <TableHead className="w-[100px]">Quantity</TableHead>
@@ -202,6 +203,7 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
                 <TableBody>
                 {fields.map((field, index) => (
                     <TableRow key={field.id}>
+                    <TableCell>{index + 1}</TableCell>
                     <TableCell>
                         <div className="flex flex-col gap-2 items-center">
                            <Image 

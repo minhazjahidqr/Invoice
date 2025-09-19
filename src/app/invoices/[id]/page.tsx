@@ -67,6 +67,7 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead className="w-[50px]">SL</TableHead>
                                 <TableHead className="w-[80px]">Item Image</TableHead>
                                 <TableHead>Item Discription</TableHead>
                                 <TableHead className="text-center">Quantity</TableHead>
@@ -75,8 +76,9 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {defaultQuotationItems.map(item => (
+                            {defaultQuotationItems.map((item, index) => (
                                 <TableRow key={item.id}>
+                                    <TableCell>{index + 1}</TableCell>
                                     <TableCell>
                                         <Image
                                           src={item.imageUrl ?? 'https://picsum.photos/seed/placeholder/64/64'}
