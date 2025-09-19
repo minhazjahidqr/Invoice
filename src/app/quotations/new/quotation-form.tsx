@@ -106,7 +106,7 @@ export function QuotationForm({ clients, projects, onClientsUpdate }: QuotationF
     });
   };
 
-  function onClientSaved(client: Client & { id?: string }) {
+  function onClientSaved(client: Omit<Client, 'id'> & { id?: string }) {
     let updatedClients;
     let message = '';
     let newClientId;
@@ -118,14 +118,14 @@ export function QuotationForm({ clients, projects, onClientsUpdate }: QuotationF
       newClientId = client.id;
     } else {
       // Add new client
-      const newClient = { ...client, id: `cli-${Date.now()}` };
+      const newClient = { ...client, id: `cli-${Date.now()}` } as Client;
       updatedClients = [newClient, ...clients];
       message = `Client "${client.name}" has been created.`;
       newClientId = newClient.id;
     }
     
     onClientsUpdate(updatedClients);
-    form.setValue('clientId', newClientId);
+    form.setValue('clientId', newClientId, { shouldValidate: true });
     toast({
       title: 'Client Saved',
       description: message,
@@ -383,3 +383,5 @@ export function QuotationForm({ clients, projects, onClientsUpdate }: QuotationF
     </Dialog>
   );
 }
+
+    
