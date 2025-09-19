@@ -5,6 +5,7 @@ import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { cn, formatCurrency } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -16,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus, ImageOff } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
-import { defaultQuotationItems, type Client } from '@/lib/data';
+import { defaultQuotationItems, type Client, type Quotation, saveQuotations, mockQuotations } from '@/lib/data';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -47,6 +48,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
   const { toast } = useToast();
   const [clientFormOpen, setClientFormOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | undefined>(undefined);
+  const router = useRouter();
 
   const form = useForm<QuotationFormValues>({
     resolver: zodResolver(formSchema),
@@ -56,7 +58,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
 - 8-Channel DVR
 - 4x Dome Cameras
 - 1TB Hard Drive`,
-      items: defaultQuotationItems.map(({id, total, imageHint, ...item}) => item),
+      items: defaultQuotationItems.map(({id, total, imageHint, ...item}) => ({...item, imageUrl: ''})),
     },
   });
 
@@ -132,11 +134,34 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
   }
 
   function onSubmit(data: QuotationFormValues) {
-    console.log(data);
+    const client = clients.find(c => c.id === data.clientId);
+    if (!client) {
+      toast({ title: 'Error', description: 'Selected client not found.', variant: 'destructive' });
+      return;
+    }
+
+    const subtotal = data.items.reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
+    const tax = subtotal * 0.05;
+    const total = subtotal + tax;
+
+    const newQuotation: Quotation = {
+        id: `Q-${new Date().getFullYear()}-${String(mockQuotations.length + 1).padStart(3, '0')}`,
+        client: client.name,
+        projectName: 'N/A',
+        date: new Date().toISOString(),
+        total: total,
+        status: 'Sent'
+    };
+
+    const updatedQuotations = [newQuotation, ...mockQuotations];
+    saveQuotations(updatedQuotations);
+
     toast({
       title: "Quotation Created!",
-      description: "The quotation has been saved successfully.",
+      description: "The quotation has been saved successfully and marked as sent.",
     });
+
+    router.push('/quotations');
   }
   
   const subtotal = form.watch('items').reduce((acc, item) => acc + (item.quantity * item.unitPrice), 0);
@@ -370,3 +395,5 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     </Dialog>
   );
 }
+
+    
