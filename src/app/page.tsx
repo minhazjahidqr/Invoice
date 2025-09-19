@@ -1,13 +1,13 @@
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import Link from "next/link";
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DollarSign, FileText, Receipt, ArrowUpRight, MoreHorizontal, Download, Loader2 } from 'lucide-react';
+import { DollarSign, FileText, Receipt, ArrowUpRight, MoreHorizontal } from 'lucide-react';
 import { mockInvoices as initialInvoices, mockQuotations as initialQuotations, type Quotation, type Invoice } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
@@ -20,8 +20,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from '@/hooks/use-toast';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 'outline' } = {
   Paid: 'default',
@@ -37,61 +35,7 @@ const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 
 export default function DashboardPage() {
   const [quotations, setQuotations] = useState<Quotation[]>(initialQuotations);
   const [invoices, setInvoices] = useState<Invoice[]>(initialInvoices);
-  const [isDownloading, setIsDownloading] = useState(false);
   const { toast } = useToast();
-  const dashboardRef = useRef<HTMLDivElement>(null);
-
-  const handleDownloadReport = async () => {
-    const element = dashboardRef.current;
-    if (!element) return;
-
-    setIsDownloading(true);
-
-    try {
-        const canvas = await html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            onclone: (document) => {
-              // Hide actions buttons on the cloned document for the PDF
-              const actionButtons = document.querySelectorAll('[aria-haspopup="true"]');
-              actionButtons.forEach(button => (button as HTMLElement).style.display = 'none');
-              const viewAllButton = document.querySelector('.ml-auto.gap-1');
-              if(viewAllButton) (viewAllButton as HTMLElement).style.display = 'none';
-            }
-        });
-        const imgData = canvas.toDataURL('image/png');
-        
-        const pdf = new jsPDF({
-          orientation: 'portrait',
-          unit: 'mm',
-          format: 'a4',
-        });
-
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = pdf.internal.pageSize.getHeight();
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-        const imgX = (pdfWidth - imgWidth * ratio) / 2;
-        const imgY = 10;
-        
-        pdf.setFontSize(20);
-        pdf.text("Monthly Dashboard Report", pdfWidth / 2, 15, { align: 'center' });
-
-        pdf.addImage(imgData, 'PNG', imgX, imgY + 10, imgWidth * ratio, imgHeight * ratio);
-        pdf.save(`dashboard-report-${new Date().toISOString().split('T')[0]}.pdf`);
-    } catch (error) {
-        console.error("Failed to generate PDF", error);
-        toast({
-            title: "Download Failed",
-            description: "Could not generate PDF. Please try again.",
-            variant: "destructive",
-        });
-    } finally {
-        setIsDownloading(false);
-    }
-  };
-
 
   const handleQuotationStatusChange = (quotationId: string, newStatus: Quotation['status']) => {
     setQuotations(quotations.map(quo =>
@@ -127,12 +71,8 @@ export default function DashboardPage() {
       <div className="grid gap-8">
         <div className="flex items-center justify-between">
           <h1 className="font-headline text-3xl font-semibold tracking-tight">Dashboard</h1>
-          <Button onClick={handleDownloadReport} disabled={isDownloading}>
-            {isDownloading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-            Download Report
-          </Button>
         </div>
-        <div ref={dashboardRef}>
+        <div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
