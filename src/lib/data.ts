@@ -15,7 +15,7 @@ export type Invoice = {
   date: string;
   dueDate: string;
   total: number;
-  status: 'Draft' | 'Sent' | 'Paid' | 'Overdue';
+  status: 'Draft' | 'Sent' | 'Paid' | 'Overdue' | 'Pending';
 };
 
 export type Client = {

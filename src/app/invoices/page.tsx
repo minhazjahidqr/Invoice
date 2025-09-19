@@ -20,6 +20,7 @@ const statusVariant: { [key: string]: 'default' | 'secondary' | 'destructive' | 
   Sent: 'secondary',
   Draft: 'outline',
   Overdue: 'destructive',
+  Pending: 'secondary',
 };
 
 export default function InvoicesPage() {
@@ -76,6 +77,7 @@ export default function InvoicesPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem asChild><Link href={`/invoices/${invoice.id}`}>View Details</Link></DropdownMenuItem>
                         <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
+                        <DropdownMenuItem>Mark as Pending</DropdownMenuItem>
                         <DropdownMenuItem>Download PDF</DropdownMenuItem>
                         <DropdownMenuItem className="text-destructive">
                           Delete
