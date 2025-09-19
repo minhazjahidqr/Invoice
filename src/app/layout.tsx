@@ -18,7 +18,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+        
         <script dangerouslySetInnerHTML={{ __html: `
             try {
               const theme = localStorage.getItem('app-theme');
@@ -30,13 +30,15 @@ export default function RootLayout({
                   document.title = appName;
                 }
                 
-                root.style.setProperty('--primary', primaryColor);
-                root.style.setProperty('--background', backgroundColor);
-                root.style.setProperty('--accent', accentColor);
+                if (primaryColor) root.style.setProperty('--primary', primaryColor);
+                if (backgroundColor) root.style.setProperty('--background', backgroundColor);
+                if (accentColor) root.style.setProperty('--accent', accentColor);
                 
-                document.body.classList.remove('font-body', 'font-headline');
-                if (font === 'inter') document.body.classList.add('font-body');
-                else if (font === 'space-grotesk') document.body.classList.add('font-headline');
+                if (font) {
+                    document.body.classList.remove('font-body', 'font-headline');
+                    if (font === 'inter') document.body.classList.add('font-body');
+                    else if (font === 'space-grotesk') document.body.classList.add('font-headline');
+                }
 
                 if (themeMode === 'dark') {
                     root.classList.add('dark');
