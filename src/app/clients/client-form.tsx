@@ -12,7 +12,7 @@ import type { Client } from '@/lib/data';
 const formSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(2, 'Name must be at least 2 characters.'),
-  email: z.string().email('Invalid email address.'),
+  email: z.string().email('Invalid email address.').or(z.literal('')),
   phone: z.string().min(5, 'Phone number is too short.'),
   address: z.string().min(5, 'Address is too short.'),
 });
@@ -61,7 +61,7 @@ export function ClientForm({ client, onSave }: ClientFormProps) {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Email (Optional)</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., contact@innovate.com" {...field} />
               </FormControl>
