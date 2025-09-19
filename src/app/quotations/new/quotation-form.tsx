@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
-import { defaultQuotationItems, type Client, type Project } from '@/lib/data';
+import { defaultQuotationItems, type Client } from '@/lib/data';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -24,7 +24,6 @@ import { ClientForm } from '@/app/clients/client-form';
 
 const formSchema = z.object({
   clientId: z.string().min(1, 'Client is required.'),
-  projectId: z.string().min(1, 'Project is required.'),
   quotationDraft: z.string(),
   items: z.array(z.object({
     imageUrl: z.string().url().optional().or(z.literal('')),
@@ -39,11 +38,10 @@ type QuotationFormValues = z.infer<typeof formSchema>;
 
 interface QuotationFormProps {
   clients: Client[];
-  projects: Project[];
   onClientsUpdate: (clients: Client[]) => void;
 }
 
-export function QuotationForm({ clients, projects, onClientsUpdate }: QuotationFormProps) {
+export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) {
   const [isSuggesting, startSuggestionTransition] = useTransition();
   const [suggestions, setSuggestions] = useState('');
   const { toast } = useToast();
@@ -54,7 +52,6 @@ export function QuotationForm({ clients, projects, onClientsUpdate }: QuotationF
     resolver: zodResolver(formSchema),
     defaultValues: {
       clientId: '',
-      projectId: '',
       quotationDraft: `CCTV System:
 - 8-Channel DVR
 - 4x Dome Cameras
@@ -150,7 +147,7 @@ export function QuotationForm({ clients, projects, onClientsUpdate }: QuotationF
     <Dialog open={clientFormOpen} onOpenChange={setClientFormOpen}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="grid md:grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label>Client</Label>
               <div className="flex gap-2">
@@ -178,24 +175,6 @@ export function QuotationForm({ clients, projects, onClientsUpdate }: QuotationF
                 </DialogTrigger>
               </div>
             </div>
-            <FormField
-              control={form.control}
-              name="projectId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Project</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Select a project" /></SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {projects.map(project => <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
           </div>
 
           {selectedClient && (
@@ -383,5 +362,3 @@ export function QuotationForm({ clients, projects, onClientsUpdate }: QuotationF
     </Dialog>
   );
 }
-
-    

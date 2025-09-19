@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { QuotationForm } from './quotation-form';
-import { mockClients, mockProjects, type Client } from '@/lib/data';
+import { mockClients, type Client } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function NewQuotationPage() {
@@ -29,8 +29,7 @@ export default function NewQuotationPage() {
             </CardHeader>
             <CardContent>
                  <QuotationForm 
-                    clients={clients} 
-                    projects={mockProjects} 
+                    clients={clients}
                     onClientsUpdate={handleClientsUpdate}
                  />
             </CardContent>
