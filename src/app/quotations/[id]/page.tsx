@@ -3,7 +3,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
-import { mockQuotations, defaultQuotationItems, mockClients } from '@/lib/data';
+import { getFromStorage, defaultQuotationItems, type Quotation, type Client } from '@/lib/data';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -19,8 +19,8 @@ import { useToast } from '@/hooks/use-toast';
 import { defaultSettings, type SettingsFormValues } from '@/app/settings/settings-form';
 
 export default function QuotationDetailPage({ params }: { params: { id: string } }) {
-  const quotation = mockQuotations.find(q => q.id === params.id);
-  const client = mockClients.find(c => c.name === quotation?.client);
+  const [quotation, setQuotation] = useState<Quotation | undefined>(undefined);
+  const [client, setClient] = useState<Client | undefined>(undefined);
   const companyLogo = PlaceHolderImages.find(img => img.id === 'company-logo');
   const quotationRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -32,7 +32,18 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
     }
-  }, []);
+
+    const quotations = getFromStorage<Quotation[]>('quotations', []);
+    const foundQuotation = quotations.find(q => q.id === params.id);
+    setQuotation(foundQuotation);
+
+    if (foundQuotation) {
+      const clients = getFromStorage<Client[]>('clients', []);
+      const foundClient = clients.find(c => c.name === foundQuotation.client);
+      setClient(foundClient);
+    }
+    
+  }, [params.id]);
 
   const handleDownloadPdf = async () => {
     const element = quotationRef.current;
@@ -76,8 +87,10 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
   if (!quotation) {
     return (
       <AppLayout>
-        <div className="text-center">
-          <h1 className="font-headline text-2xl">Quotation not found</h1>
+        <div className="text-center p-8">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+            <h1 className="font-headline text-2xl mt-4">Loading Quotation...</h1>
+            <p className="text-muted-foreground">If it does not load, the quotation may not exist.</p>
         </div>
       </AppLayout>
     );

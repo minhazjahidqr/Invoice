@@ -3,7 +3,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
-import { mockInvoices, defaultQuotationItems } from '@/lib/data';
+import { getFromStorage, defaultQuotationItems, type Invoice } from '@/lib/data';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -20,7 +20,7 @@ import { defaultSettings, type SettingsFormValues } from '@/app/settings/setting
 
 
 export default function InvoiceDetailPage({ params }: { params: { id: string } }) {
-  const invoice = mockInvoices.find(inv => inv.id === params.id);
+  const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
   const companyLogo = PlaceHolderImages.find(img => img.id === 'company-logo');
   const invoiceRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -32,7 +32,12 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     if (savedSettings) {
       setSettings(JSON.parse(savedSettings));
     }
-  }, []);
+
+    const invoices = getFromStorage<Invoice[]>('invoices', []);
+    const foundInvoice = invoices.find(inv => inv.id === params.id);
+    setInvoice(foundInvoice);
+
+  }, [params.id]);
 
   const handleDownloadPdf = async () => {
     const element = invoiceRef.current;
@@ -76,8 +81,10 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
   if (!invoice) {
     return (
       <AppLayout>
-        <div className="text-center">
-          <h1 className="font-headline text-2xl">Invoice not found</h1>
+        <div className="text-center p-8">
+            <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
+            <h1 className="font-headline text-2xl mt-4">Loading Invoice...</h1>
+            <p className="text-muted-foreground">If it does not load, the invoice may not exist.</p>
         </div>
       </AppLayout>
     );
