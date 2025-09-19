@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin } from 'lucide-react';
+import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
 import { defaultQuotationItems, type Client, type Project } from '@/lib/data';
@@ -111,24 +111,31 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <div className="grid md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="clientId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Client</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger><SelectValue placeholder="Select a client" /></SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {clients.map(client => <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="space-y-2">
+            <Label>Client</Label>
+            <div className="flex gap-2">
+              <FormField
+                control={form.control}
+                name="clientId"
+                render={({ field }) => (
+                  <FormItem className="flex-grow">
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Select a client" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {clients.map(client => <SelectItem key={client.id} value={client.id}>{client.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="button" variant="outline" size="icon" aria-label="Add new client">
+                  <UserPlus className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
           <FormField
             control={form.control}
             name="projectId"
@@ -151,8 +158,11 @@ export function QuotationForm({ clients, projects }: { clients: Client[], projec
 
         {selectedClient && (
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Client Information</CardTitle>
+              <Button type="button" size="sm" variant="outline">
+                <Pencil className="mr-2 h-4 w-4" /> Edit
+              </Button>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
                <div className="flex items-center gap-2 text-muted-foreground">
