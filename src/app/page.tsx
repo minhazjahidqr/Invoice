@@ -58,11 +58,14 @@ export default function DashboardPage() {
     });
   };
 
-  const recentActivity: (Quotation | Invoice)[] = [...quotations.slice(0, 3), ...invoices.slice(0, 2)]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const recentQuotations = quotations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+  const recentInvoices = invoices.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
+
+  const recentActivity: (Quotation | Invoice)[] = [...recentQuotations, ...recentInvoices]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 5);
   
   const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((acc, i) => acc + i.total, 0);
-  const pendingAmount = invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue').reduce((acc, i) => acc + i.total, 0);
+  const pendingAmount = invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue' || i.status === 'Pending').reduce((acc, i) => acc + i.total, 0);
 
   return (
     <AppLayout>
@@ -86,14 +89,14 @@ export default function DashboardPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Pending Invoices
+                Pending Amount
               </CardTitle>
               <Receipt className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(pendingAmount)}</div>
               <p className="text-xs text-muted-foreground">
-                {invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue').length} invoices pending
+                {invoices.filter(i => i.status === 'Sent' || i.status === 'Overdue' || i.status === 'Pending').length} invoices pending
               </p>
             </CardContent>
           </Card>
@@ -103,9 +106,9 @@ export default function DashboardPage() {
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+{quotations.filter(q => q.status === 'Sent').length}</div>
+              <div className="text-2xl font-bold">+{quotations.filter(q => q.status === 'Sent' || q.status === 'Approved').length}</div>
               <p className="text-xs text-muted-foreground">
-                Currently awaiting client approval
+                Currently awaiting client action
               </p>
             </CardContent>
           </Card>
@@ -168,6 +171,7 @@ export default function DashboardPage() {
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => handleInvoiceStatusChange(item.id, 'Paid')}>Mark as Paid</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleInvoiceStatusChange(item.id, 'Pending')}>Mark as Pending</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleInvoiceStatusChange(item.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
                               </>
                             ) : (
                               <>
@@ -176,6 +180,7 @@ export default function DashboardPage() {
                                 <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Sent')}>Mark as Sent</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Approved')}>Mark as Approved</DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Rejected')}>Mark as Rejected</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleQuotationStatusChange(item.id, 'Draft')}>Mark as Draft</DropdownMenuItem>
                               </>
                             )}
                           </DropdownMenuContent>
