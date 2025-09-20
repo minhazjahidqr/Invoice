@@ -22,7 +22,7 @@ export default function RootLayout({
         
         <script dangerouslySetInnerHTML={{ __html: `
             try {
-              if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login') && !window.location.pathname.startsWith('/signup')) {
+              if (typeof window !== 'undefined') {
                 const theme = localStorage.getItem('app-settings');
                 if (theme) {
                   const { appName, primaryColor, backgroundColor, accentColor, font, themeMode } = JSON.parse(theme);
