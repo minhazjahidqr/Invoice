@@ -13,7 +13,7 @@ import { login } from '@/lib/auth';
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [email, setEmail] = useState('user');
+  const [username, setUsername] = useState('user');
   const [password, setPassword] = useState('password');
   const [loading, setLoading] = useState(false);
 
@@ -21,7 +21,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(email, password);
+      await login(username, password);
       toast({
         title: 'Login Successful',
         description: "Welcome back!",
@@ -56,14 +56,14 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleLogin} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Username</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
+                id="username"
                 type="text"
                 placeholder="user"
                 required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </div>
             <div className="grid gap-2">

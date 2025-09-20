@@ -46,17 +46,21 @@ if (typeof window !== 'undefined' && !localStorage.getItem(USERS_STORAGE_KEY)) {
     saveStoredUsers(defaultUsers);
 }
 
-export async function login(email: string, password?: string): Promise<User> {
+export async function login(usernameOrEmail: string, password?: string): Promise<User> {
     const users = getStoredUsers();
-    // Allow login with either email or name
-    const user = users.find(u => (u.email === email || u.name === email));
+    const normalizedIdentifier = usernameOrEmail.toLowerCase();
+    
+    const user = users.find(u => 
+        u.name.toLowerCase() === normalizedIdentifier || 
+        u.email.toLowerCase() === normalizedIdentifier
+    );
     
     // In a real app, you would have secure password verification.
-    // Here we are just checking if it exists for mock purposes.
     if (user && user.password === password) {
         if (typeof window !== 'undefined') {
             const { password, ...userToStore } = user;
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
+            window.dispatchEvent(new Event('storage'));
         }
         const { password: _, ...userToReturn } = user;
         return Promise.resolve(userToReturn);
@@ -115,4 +119,3 @@ export function updateUser(updatedUser: User): User[] {
     
     return newUsers;
 }
-
