@@ -209,7 +209,7 @@ export default function ClientsPage() {
             </div>
             {filteredClients.length === 0 && (
                <div className="text-center py-10 text-muted-foreground">
-                  No clients found for &quot;{searchTerm}&quot;.
+                  No clients found.
               </div>
             )}
           </CardContent>

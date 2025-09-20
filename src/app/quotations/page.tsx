@@ -73,7 +73,6 @@ export default function QuotationsPage() {
 
   const handleConvertToInvoice = async (quotation: Quotation) => {
     try {
-      const newInvoiceId = `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
 

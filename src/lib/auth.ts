@@ -17,17 +17,21 @@ export type User = {
 
 async function getStoredUsers(): Promise<User[]> {
     const usersSnapshot = await getDocs(query(collection(db, "users")));
-    if (usersSnapshot.empty) {
-        // This will run only if there are absolutely no users.
-        const defaultUser: Omit<User, 'id'> = { name: 'user', email: 'user@example.com', password: 'password', requiresPasswordChange: true };
-        const newUser = await addData('users', defaultUser);
-        return [newUser];
-    }
     return usersSnapshot.docs.map(doc => doc.data() as User);
 }
 
 export async function login(usernameOrEmail: string, passwordInput: string): Promise<User | null> {
     const users = await getStoredUsers();
+    if (users.length === 0) {
+        // If no users exist, seed the default user and try again
+        await seedInitialUsers();
+        const seededUsers = await getStoredUsers();
+        return findAndAuthUser(usernameOrEmail, passwordInput, seededUsers);
+    }
+    return findAndAuthUser(usernameOrEmail, passwordInput, users);
+}
+
+function findAndAuthUser(usernameOrEmail: string, passwordInput: string, users: User[]): User | null {
     const normalizedInput = usernameOrEmail.toLowerCase();
     const user = users.find(
       (u) => (u.name.toLowerCase() === normalizedInput || u.email.toLowerCase() === normalizedInput)
@@ -43,6 +47,7 @@ export async function login(usernameOrEmail: string, passwordInput: string): Pro
     }
     return null;
 }
+
 
 export function logout() {
     if (typeof window !== 'undefined') {
@@ -64,7 +69,6 @@ export function getCurrentUser(): User | null {
 
 export async function updateUser(updatedUser: Partial<User> & { id: string }): Promise<User[]> {
     const usersCollection = collection(db, 'users');
-    // Firestore's native document ID is not the same as our user 'id' field. We need to query for the document.
     const q = query(usersCollection, where("id", "==", updatedUser.id));
     const userSnapshot = await getDocs(q);
 
@@ -74,32 +78,28 @@ export async function updateUser(updatedUser: Partial<User> & { id: string }): P
 
     const userDocRef = userSnapshot.docs[0].ref;
 
-    // Build the data object for update, ensuring we don't save an empty password.
-    const updateData: Partial<User> = {
-        name: updatedUser.name,
-        email: updatedUser.email,
-    };
+    const updateData: Partial<User> = {};
+    if (updatedUser.name) updateData.name = updatedUser.name;
+    if (updatedUser.email) updateData.email = updatedUser.email;
     
     if (updatedUser.password && updatedUser.password.length > 0) {
         updateData.password = updatedUser.password;
-        // When an admin sets a password, we assume it no longer requires a change.
         updateData.requiresPasswordChange = false;
     }
 
     await updateDoc(userDocRef, updateData);
 
-    // If the currently logged-in user is the one being updated, refresh their localStorage data.
     const currentUser = getCurrentUser();
     if (currentUser && currentUser.id === updatedUser.id) {
          if (typeof window !== 'undefined') {
             const newCurrentUser = { ...currentUser, ...updateData };
             const { password, ...userToStore } = newCurrentUser;
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
-            window.dispatchEvent(new Event('storage')); // Notify layout to re-render
+            window.dispatchEvent(new Event('storage'));
         }
     }
     
-    return getStoredUsers(); // Return the updated list of all users
+    return getStoredUsers();
 }
 
 
@@ -108,8 +108,6 @@ export async function getPersistedUsers(): Promise<User[]> {
 }
 
 
-// Seed initial user if the user collection is empty.
-// This is helpful for the first run of the application.
 async function seedInitialUsers() {
     const usersSnapshot = await getDocs(query(collection(db, "users")));
     if (usersSnapshot.empty) {
@@ -119,7 +117,6 @@ async function seedInitialUsers() {
     }
 }
 
-// Ensure this only runs on the client-side
 if (typeof window !== 'undefined') {
-    seedInitialUsers();
+    seedInitialUsers().catch(console.error);
 }

@@ -27,10 +27,9 @@ import {
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import React, { useState, useEffect } from 'react';
 import { getCurrentUser, logout, type User } from '@/lib/auth';
-import { defaultSettings } from '@/app/settings/settings-form';
+import { defaultSettings, type SettingsFormValues } from '@/app/settings/settings-form';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -42,7 +41,7 @@ const navItems = [
 
 const settingsItem = { href: '/settings', label: 'Settings', icon: Settings };
 
-function applyTheme(settings: any) {
+function applyTheme(settings: SettingsFormValues) {
     try {
         if (typeof window !== 'undefined') {
             const root = document.documentElement;
@@ -78,22 +77,22 @@ function applyTheme(settings: any) {
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [appName, setAppName] = useState('QuoteCraft ELV');
+  const [appName, setAppName] = useState(defaultSettings.appName || 'QuoteCraft ELV');
   const [user, setUser] = useState<User | null>(null);
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
     const currentUser = getCurrentUser();
-    if (!currentUser) {
+    if (!currentUser && pathname !== '/login') {
         router.push('/login');
     } else {
         setUser(currentUser);
     }
 
     const onStorage = () => {
-      const savedSettings = localStorage.getItem('app-settings');
       let parsedSettings = defaultSettings;
+      const savedSettings = localStorage.getItem('app-settings');
       if (savedSettings) {
         try {
           parsedSettings = { ...defaultSettings, ...JSON.parse(savedSettings) };
@@ -105,6 +104,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       if (parsedSettings.appName) {
         setAppName(parsedSettings.appName);
       }
+      
       const updatedUser = getCurrentUser();
       setUser(updatedUser);
       if (!updatedUser && pathname !== '/login') {
@@ -115,18 +115,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     window.addEventListener('storage', onStorage);
     onStorage(); 
 
-    return () => window.removeEventListener('storage', onStorage);
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = () => onStorage();
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    }
   }, [router, pathname]);
 
   const handleLogout = () => {
     logout();
     router.push('/login');
   };
-
-  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
   
-  if (!user && isClient) {
+  if (!user && pathname !== '/login') {
       return null;
+  }
+  
+  if (pathname === '/login') {
+      return <>{children}</>
   }
 
   return (
@@ -173,7 +182,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <SidebarMenuButton tooltip={{ children: 'Profile' }} className="h-auto justify-start py-2">
                     <div className="flex w-full items-center gap-2">
                         <Avatar className="h-8 w-8">
-                            {userAvatar && <AvatarImage src={userAvatar.imageUrl} alt="User Avatar" data-ai-hint={userAvatar.imageHint}/>}
                             <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-start group-data-[collapsible=icon]:hidden">

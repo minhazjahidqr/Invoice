@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus, ImageOff } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
-import { defaultQuotationItems, type Client, type Quotation, addData, type QuotationItem, updateData } from '@/lib/data';
+import { type Client, type Quotation, addData, type QuotationItem, updateData } from '@/lib/data';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -65,7 +65,7 @@ export function QuotationForm({ clients }: QuotationFormProps) {
 - 8-Channel DVR
 - 4x Dome Cameras
 - 1TB Hard Drive`,
-      items: defaultQuotationItems,
+      items: [],
     },
   });
 
