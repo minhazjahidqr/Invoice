@@ -13,8 +13,8 @@ import { login } from '@/lib/auth';
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [email, setEmail] = useState('admin');
-  const [password, setPassword] = useState('admin');
+  const [email, setEmail] = useState('user');
+  const [password, setPassword] = useState('password');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -60,7 +60,7 @@ export default function LoginPage() {
               <Input
                 id="email"
                 type="text"
-                placeholder="admin"
+                placeholder="user"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

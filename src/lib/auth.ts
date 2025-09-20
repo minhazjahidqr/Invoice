@@ -27,7 +27,7 @@ export function getStoredUsers(): User[] {
         }
     }
     const defaultUsers: User[] = [
-        { id: 'user-1', name: 'admin', email: 'admin', password: 'admin' },
+        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password' },
     ];
     saveStoredUsers(defaultUsers);
     return defaultUsers;
@@ -41,7 +41,7 @@ function saveStoredUsers(users: User[]) {
 // Initialize with a default user if none exist
 if (typeof window !== 'undefined' && !localStorage.getItem(USERS_STORAGE_KEY)) {
     const defaultUsers: User[] = [
-        { id: 'user-1', name: 'admin', email: 'admin', password: 'admin' },
+        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password' },
     ];
     saveStoredUsers(defaultUsers);
 }
