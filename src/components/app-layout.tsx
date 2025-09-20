@@ -29,6 +29,7 @@ import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import React, { useState, useEffect } from 'react';
 import { getCurrentUser } from '@/lib/auth';
+import { defaultSettings } from '@/app/settings/settings-form';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -46,6 +47,39 @@ type User = {
     email: string;
 }
 
+function applySettings(settings: any) {
+    try {
+        if (typeof window !== 'undefined') {
+            const root = document.documentElement;
+
+            if (settings.appName) {
+              document.title = settings.appName;
+            }
+            
+            if (settings.primaryColor) root.style.setProperty('--primary', settings.primaryColor);
+            if (settings.backgroundColor) root.style.setProperty('--background', settings.backgroundColor);
+            if (settings.accentColor) root.style.setProperty('--accent', settings.accentColor);
+            
+            document.body.classList.remove('font-body', 'font-headline');
+            if (settings.font === 'inter') document.body.classList.add('font-body');
+            else if (settings.font === 'space-grotesk') document.body.classList.add('font-headline');
+
+            if (settings.themeMode === 'dark') {
+                root.classList.add('dark');
+            } else if (settings.themeMode === 'light') {
+                root.classList.remove('dark');
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                root.classList.add('dark');
+            } else {
+                root.classList.remove('dark');
+            }
+        }
+    } catch (e) {
+      console.error('Failed to apply theme from localStorage', e);
+    }
+}
+
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -57,11 +91,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const onStorage = () => {
       setTick(t => t + 1);
       const savedSettings = localStorage.getItem('app-settings');
+      let parsedSettings = defaultSettings;
       if (savedSettings) {
-        const parsedSettings = JSON.parse(savedSettings);
-        if (parsedSettings.appName) {
-          setAppName(parsedSettings.appName);
+        try {
+          parsedSettings = { ...defaultSettings, ...JSON.parse(savedSettings) };
+        } catch (e) {
+            // Do nothing, use default settings
         }
+      }
+      applySettings(parsedSettings);
+
+      if (parsedSettings.appName) {
+        setAppName(parsedSettings.appName);
       }
       const updatedUser = getCurrentUser();
       setUser(updatedUser);
