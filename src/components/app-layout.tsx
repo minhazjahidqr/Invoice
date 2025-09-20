@@ -22,14 +22,13 @@ import {
   Users,
   Briefcase,
   Settings,
-  LogOut,
 } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import React, { useState, useEffect } from 'react';
-import { getCurrentUser, logout } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/auth';
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: Home },
@@ -52,18 +51,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [appName, setAppName] = useState('QuoteCraft ELV');
   const [user, setUser] = useState<User | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
   const [, setTick] = React.useState(0);
 
   useEffect(() => {
-    const currentUser = getCurrentUser();
-    if (!currentUser) {
-      router.push('/login');
-    } else {
-      setUser(currentUser);
-      setAuthChecked(true);
-    }
-
     const onStorage = () => {
       setTick(t => t + 1);
       const savedSettings = localStorage.getItem('app-settings');
@@ -74,11 +64,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         }
       }
       const updatedUser = getCurrentUser();
-      if (!updatedUser) {
-        router.push('/login');
-      } else {
-        setUser(updatedUser);
-      }
+      setUser(updatedUser);
     };
 
     window.addEventListener('storage', onStorage);
@@ -87,20 +73,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('storage', onStorage);
   }, [router]);
 
-  const handleLogout = () => {
-    logout();
-    router.push('/login');
-  };
-
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
-
-  if (!authChecked || !user) {
-    return (
-        <div className="flex h-screen items-center justify-center">
-            <p>Loading...</p>
-        </div>
-    );
-  }
 
   return (
     <SidebarProvider>
@@ -142,7 +115,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
+            {user && <SidebarMenuItem>
                 <SidebarMenuButton tooltip={{ children: 'Profile' }} className="h-auto justify-start py-2">
                     <div className="flex w-full items-center gap-2">
                         <Avatar className="h-8 w-8">
@@ -154,13 +127,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                         </div>
                     </div>
                 </SidebarMenuButton>
-            </SidebarMenuItem>
-             <SidebarMenuItem>
-              <SidebarMenuButton onClick={handleLogout} tooltip={{ children: 'Logout' }}>
-                <LogOut />
-                <span>Logout</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            </SidebarMenuItem>}
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>

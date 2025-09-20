@@ -28,7 +28,7 @@ export function getStoredUsers(): User[] {
         }
     }
     const defaultUsers: User[] = [
-        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password', requiresPasswordChange: true },
+        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password', requiresPasswordChange: false },
     ];
     saveStoredUsers(defaultUsers);
     return defaultUsers;
@@ -44,26 +44,6 @@ if (typeof window !== 'undefined' && !localStorage.getItem(USERS_STORAGE_KEY)) {
     getStoredUsers();
 }
 
-export async function login(usernameOrEmail: string, password?: string): Promise<User> {
-    const users = getStoredUsers();
-    const normalizedIdentifier = usernameOrEmail.toLowerCase();
-    
-    const user = users.find(u => 
-        u.name.toLowerCase() === normalizedIdentifier || 
-        u.email.toLowerCase() === normalizedIdentifier
-    );
-    
-    if (user && user.password === password) {
-        if (typeof window !== 'undefined' && !user.requiresPasswordChange) {
-            const { password, ...userToStore } = user;
-            localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
-            window.dispatchEvent(new Event('storage'));
-        }
-        return Promise.resolve(user);
-    }
-    
-    return Promise.reject(new Error('Invalid username or password'));
-}
 
 export function logout() {
     if (typeof window !== 'undefined') {
@@ -72,9 +52,24 @@ export function logout() {
 }
 
 export function getCurrentUser(): {id: string, name: string, email: string} | null {
-    if (typeof window === 'undefined') return null;
+    if (typeof window === 'undefined') {
+      const defaultUser = getStoredUsers()[0];
+      if (defaultUser) {
+        const { password, ...userToReturn } = defaultUser;
+        return userToReturn;
+      }
+      return null;
+    };
     const userJson = localStorage.getItem(USER_STORAGE_KEY);
-    if (!userJson) return null;
+    if (!userJson) {
+       const defaultUser = getStoredUsers()[0];
+       if (defaultUser) {
+        const { password, ...userToStore } = defaultUser;
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
+        return userToStore;
+       }
+       return null;
+    }
     try {
         const user = JSON.parse(userJson);
         return { id: user.id, name: user.name, email: user.email };

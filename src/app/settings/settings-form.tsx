@@ -21,7 +21,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { getStoredUsers, updateUser, type User } from '@/lib/auth';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { UserEditForm } from './user-edit-form';
 
 
 const settingsSchema = z.object({
@@ -124,21 +123,13 @@ export function SettingsForm() {
   const { toast } = useToast();
   const [logoPreview, setLogoPreview] = useState<string | undefined>(defaultSettings.companyLogo);
   const [headerBgPreview, setHeaderBgPreview] = useState<string | undefined>(defaultSettings.headerBackgroundImage);
-  const [users, setUsers] = useState<User[]>([]);
-  const [editingUser, setEditingUser] = useState<User | undefined>(undefined);
-  const [isUserFormOpen, setIsUserFormOpen] = useState(false);
   
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsSchema),
     defaultValues: defaultSettings,
   });
 
-  const fetchUsers = () => {
-    setUsers(getStoredUsers());
-  }
-
   useEffect(() => {
-    fetchUsers();
     const savedSettings = localStorage.getItem('app-settings');
     if (savedSettings) {
       const parsedSettings = { ...defaultSettings, ...JSON.parse(savedSettings) };
@@ -197,32 +188,7 @@ export function SettingsForm() {
     window.dispatchEvent(new Event('storage'));
   };
 
-  const handleEditUser = (user: User) => {
-    setEditingUser(user);
-    setIsUserFormOpen(true);
-  };
-
-  const handleUserSave = (user: User) => {
-    try {
-        const updatedUsers = updateUser(user);
-        setUsers(updatedUsers);
-        toast({
-            title: 'User Updated',
-            description: `Details for ${user.name} have been updated.`,
-        });
-        setIsUserFormOpen(false);
-        setEditingUser(undefined);
-    } catch (error) {
-         toast({
-            title: 'Update Failed',
-            description: (error as Error).message,
-            variant: 'destructive',
-        });
-    }
-  }
-
   return (
-    <Dialog open={isUserFormOpen} onOpenChange={setIsUserFormOpen}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <div className="flex justify-start gap-2 sticky top-[calc(theme(height.14)+1px)] bg-background/80 backdrop-blur-sm p-4 -m-4 z-10">
@@ -231,44 +197,6 @@ export function SettingsForm() {
           </div>
 
           <div className="space-y-6">
-              {/* <Card>
-                  <CardHeader>
-                      <div className="flex items-center justify-between">
-                          <div>
-                              <CardTitle>User Management</CardTitle>
-                              <CardDescription>
-                              View and manage users who can access the application.
-                              </CardDescription>
-                          </div>
-                      </div>
-                  </CardHeader>
-                  <CardContent>
-                      <Table>
-                          <TableHeader>
-                              <TableRow>
-                                  <TableHead>Name</TableHead>
-                                  <TableHead>Email</TableHead>
-                                  <TableHead><span className="sr-only">Actions</span></TableHead>
-                              </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                              {users.map((user) => (
-                                  <TableRow key={user.id}>
-                                      <TableCell className="font-medium">{user.name}</TableCell>
-                                      <TableCell>{user.email}</TableCell>
-                                      <TableCell className="text-right">
-                                        <Button size="sm" variant="outline" onClick={() => handleEditUser(user)}>
-                                            <Pencil className="mr-2 h-4 w-4" />
-                                            Edit
-                                        </Button>
-                                      </TableCell>
-                                  </TableRow>
-                              ))}
-                          </TableBody>
-                      </Table>
-                  </CardContent>
-              </Card> */}
-
               <Card>
                   <CardHeader>
                       <CardTitle>Theme Customization</CardTitle>
@@ -773,16 +701,6 @@ export function SettingsForm() {
               </div>
           </form>
       </Form>
-      <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>
-                Update the user's details. Click save when you're done.
-            </DialogDescription>
-          </DialogHeader>
-          <UserEditForm user={editingUser} onSave={handleUserSave} />
-      </DialogContent>
-    </Dialog>
   );
 }
 
