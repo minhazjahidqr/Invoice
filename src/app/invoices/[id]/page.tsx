@@ -3,7 +3,7 @@
 
 import { useRef, useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
-import { getFromStorage, saveToStorage, type Invoice, type Client, type QuotationItem } from '@/lib/data';
+import { getData, updateData, type Invoice, type Client, type QuotationItem } from '@/lib/data';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -30,22 +30,23 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
   const [isItemFormOpen, setIsItemFormOpen] = useState(false);
 
   useEffect(() => {
+    async function loadData() {
+      const currentInvoice = await getData<Invoice>('invoices', params.id);
+      setInvoice(currentInvoice ?? undefined);
+
+      if (currentInvoice) {
+        const currentClient = await getData<Client>('clients', currentInvoice.clientId);
+        setClient(currentClient ?? undefined);
+      }
+    }
+    loadData();
+
     const onStorageChange = () => {
       const savedSettings = localStorage.getItem('app-settings');
       if (savedSettings) {
         setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) });
       } else {
         setSettings(defaultSettings);
-      }
-
-      const invoices = getFromStorage<Invoice[]>('invoices', []);
-      const foundInvoice = invoices.find(inv => inv.id === params.id);
-      setInvoice(foundInvoice);
-
-       if (foundInvoice) {
-        const clients = getFromStorage<Client[]>('clients', []);
-        const foundClient = clients.find(c => c.id === foundInvoice.clientId);
-        setClient(foundClient);
       }
     }
     
@@ -54,17 +55,22 @@ export default function InvoiceDetailPage({ params }: { params: { id: string } }
     return () => window.removeEventListener('storage', onStorageChange);
   }, [params.id]);
   
-  const handleItemSave = (updatedInvoice: Invoice) => {
-    const invoices = getFromStorage<Invoice[]>('invoices', []);
-    const updatedInvoices = invoices.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv);
-    saveToStorage('invoices', updatedInvoices);
-    setInvoice(updatedInvoice);
-    setIsItemFormOpen(false);
-    toast({
-        title: "Invoice Items Updated",
-        description: "The line items for this invoice have been saved.",
-    })
-    window.dispatchEvent(new Event('storage'));
+  const handleItemSave = async (updatedInvoice: Invoice) => {
+    try {
+      await updateData('invoices', updatedInvoice.id, updatedInvoice);
+      setInvoice(updatedInvoice);
+      setIsItemFormOpen(false);
+      toast({
+          title: "Invoice Items Updated",
+          description: "The line items for this invoice have been saved.",
+      });
+    } catch (error) {
+       toast({
+        title: "Error",
+        description: "Failed to update invoice items.",
+        variant: "destructive",
+      });
+    }
   }
 
 

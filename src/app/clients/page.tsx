@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { getFromStorage, saveToStorage, type Client } from '@/lib/data';
+import { addData, updateData, deleteData, subscribeToCollection, type Client } from '@/lib/data';
 import { MoreHorizontal, UserPlus, MapPin, Trash2, Pencil, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -23,46 +23,53 @@ export default function ClientsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    setClients(getFromStorage('clients', []));
+    const unsubscribe = subscribeToCollection<Client>('clients', setClients);
+    return () => unsubscribe();
   }, []);
 
-  const updateClients = (newClients: Client[]) => {
-    setClients(newClients);
-    saveToStorage('clients', newClients);
-    window.dispatchEvent(new Event('storage'));
-  }
-
-  const handleClientSave = (clientToSave: Client & { id?: string }) => {
+  const handleClientSave = async (clientToSave: Omit<Client, 'id'> & { id?: string }) => {
     let message = '';
-    let newClients;
-    if (clientToSave.id && clients.some(c => c.id === clientToSave.id)) {
-      newClients = clients.map(c => c.id === clientToSave.id ? clientToSave as Client : c);
-      message = `The details for ${clientToSave.name} have been updated.`;
-    } else {
-      const newClient = { ...clientToSave, id: `cli-${Date.now()}` } as Client;
-      newClients = [newClient, ...clients];
-      message = `Client ${newClient.name} has been added.`;
+    try {
+      if (clientToSave.id) {
+        await updateData('clients', clientToSave.id, clientToSave);
+        message = `The details for ${clientToSave.name} have been updated.`;
+      } else {
+        const newClient = await addData('clients', clientToSave);
+        message = `Client ${newClient.name} has been added.`;
+      }
+      toast({
+        title: 'Client Saved',
+        description: message,
+      });
+      setFormDialogOpen(false);
+      setEditingClient(undefined);
+    } catch (error) {
+      toast({
+        title: 'Error Saving Client',
+        description: (error as Error).message,
+        variant: 'destructive',
+      });
     }
-    updateClients(newClients);
-    toast({
-      title: 'Client Saved',
-      description: message,
-    });
-    setFormDialogOpen(false);
-    setEditingClient(undefined);
   };
   
-  const handleDeleteClient = (clientId: string) => {
+  const handleDeleteClient = async (clientId: string) => {
     const clientToDelete = clients.find(c => c.id === clientId);
     if (!clientToDelete) return;
 
-    const newClients = clients.filter(c => c.id !== clientId)
-    updateClients(newClients);
-    toast({
-      title: 'Client Deleted',
-      description: `The client ${clientToDelete.name} has been deleted.`,
-      variant: 'destructive',
-    });
+    try {
+      await deleteData('clients', clientId);
+      toast({
+        title: 'Client Deleted',
+        description: `The client ${clientToDelete.name} has been deleted.`,
+        variant: 'destructive',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error Deleting Client',
+        description: (error as Error).message,
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleEditClick = (client: Client) => {

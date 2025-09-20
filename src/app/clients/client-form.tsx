@@ -62,7 +62,7 @@ export function ClientForm({ client, onSave }: ClientFormProps) {
             <FormItem>
               <FormLabel>Email (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., contact@innovate.com" {...field} />
+                <Input placeholder="e.g., contact@innovate.com" {...field} value={field.value ?? ''} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -88,7 +88,7 @@ export function ClientForm({ client, onSave }: ClientFormProps) {
             <FormItem>
               <FormLabel>Address (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., 123 Innovation Drive, Tech City" {...field} />
+                <Input placeholder="e.g., 123 Innovation Drive, Tech City" {...field} value={field.value ?? ''} />
               </FormControl>
               <FormMessage />
             </FormItem>

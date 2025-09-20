@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Trash2 } from 'lucide-react';
-import { getFromStorage, saveToStorage, type Quotation, type Invoice, type Client } from '@/lib/data';
+import { subscribeToCollection, updateData, deleteData, addData, type Quotation, type Invoice, type Client } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -47,78 +47,86 @@ export default function QuotationsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const loadData = () => {
-      setQuotations(getFromStorage('quotations', []));
-      setClients(getFromStorage('clients', []));
+    const unsubQuotations = subscribeToCollection<Quotation>('quotations', setQuotations);
+    const unsubClients = subscribeToCollection<Client>('clients', setClients);
+    return () => {
+      unsubQuotations();
+      unsubClients();
     };
-    loadData();
-    window.addEventListener('storage', loadData);
-    return () => window.removeEventListener('storage', loadData);
   }, []);
 
-  const updateQuotations = (newQuotations: Quotation[]) => {
-    setQuotations(newQuotations);
-    saveToStorage('quotations', newQuotations);
-    window.dispatchEvent(new Event('storage'));
+  const handleStatusChange = async (quotationId: string, newStatus: Quotation['status']) => {
+    try {
+      await updateData('quotations', quotationId, { status: newStatus });
+      toast({
+        title: 'Quotation Status Updated',
+        description: `Quotation ${quotationId} has been marked as ${newStatus}.`
+      });
+    } catch(error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update quotation status.',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const handleStatusChange = (quotationId: string, newStatus: Quotation['status']) => {
-    const newQuotations = quotations.map(quo =>
-      quo.id === quotationId ? { ...quo, status: newStatus } : quo
-    );
-    updateQuotations(newQuotations);
-    toast({
-      title: 'Quotation Status Updated',
-      description: `Quotation ${quotationId} has been marked as ${newStatus}.`
-    });
-  };
+  const handleConvertToInvoice = async (quotation: Quotation) => {
+    try {
+      const newInvoiceId = `INV-${new Date().getFullYear()}-${String(Math.floor(Math.random() * 1000)).padStart(3, '0')}`;
+      const dueDate = new Date();
+      dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
 
-  const handleConvertToInvoice = (quotation: Quotation) => {
-    const existingInvoices = getFromStorage<Invoice[]>('invoices', []);
-    const newInvoiceId = `INV-${new Date().getFullYear()}-${String(existingInvoices.length + 1).padStart(3, '0')}`;
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
+      const newInvoice: Omit<Invoice, 'id'> = {
+          quotationId: quotation.id,
+          clientId: quotation.clientId,
+          projectName: quotation.projectName,
+          date: new Date().toISOString(),
+          dueDate: dueDate.toISOString(),
+          total: quotation.total,
+          status: 'Draft',
+          items: quotation.items || [],
+      };
 
-    const newInvoice: Invoice = {
-        id: newInvoiceId,
-        quotationId: quotation.id,
-        clientId: quotation.clientId,
-        projectName: quotation.projectName,
-        date: new Date().toISOString(),
-        dueDate: dueDate.toISOString(),
-        total: quotation.total,
-        status: 'Draft',
-        items: quotation.items || [],
-    };
+      const addedInvoice = await addData('invoices', newInvoice);
 
-    const updatedInvoices = [newInvoice, ...existingInvoices];
-    saveToStorage('invoices', updatedInvoices);
-    window.dispatchEvent(new Event('storage'));
+      toast({
+          title: 'Invoice Created',
+          description: `Invoice ${addedInvoice.id} has been created from Quotation ${quotation.id}.`,
+      });
 
-    toast({
-        title: 'Invoice Created',
-        description: `Invoice ${newInvoiceId} has been created from Quotation ${quotation.id}.`,
-    });
-
-    router.push(`/invoices/${newInvoiceId}`);
+      router.push(`/invoices/${addedInvoice.id}`);
+    } catch(error) {
+       toast({
+          title: 'Error',
+          description: 'Failed to convert to invoice.',
+          variant: 'destructive',
+      });
+    }
   };
   
   const handleDownloadPdf = (quotationId: string) => {
     router.push(`/quotations/${quotationId}`);
   };
 
-  const handleDeleteQuotation = (quotationId: string) => {
+  const handleDeleteQuotation = async (quotationId: string) => {
     const quotationToDelete = quotations.find(q => q.id === quotationId);
     if (!quotationToDelete) return;
 
-    const newQuotations = quotations.filter(q => q.id !== quotationId);
-    updateQuotations(newQuotations);
-
-    toast({
-        title: 'Quotation Deleted',
-        description: `Quotation "${quotationToDelete.id}" has been permanently deleted.`,
+    try {
+      await deleteData('quotations', quotationId);
+      toast({
+          title: 'Quotation Deleted',
+          description: `Quotation "${quotationToDelete.id}" has been permanently deleted.`,
+          variant: 'destructive',
+      });
+    } catch(error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete quotation.',
         variant: 'destructive',
-    });
+      });
+    }
   };
   
   const getClientName = (clientId: string) => {

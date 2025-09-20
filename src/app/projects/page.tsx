@@ -6,7 +6,7 @@ import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { getFromStorage, saveToStorage, type Project, type Client } from '@/lib/data';
+import { subscribeToCollection, addData, updateData, type Project, type Client } from '@/lib/data';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
@@ -22,37 +22,33 @@ export default function ProjectsPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const loadData = () => {
-      setProjects(getFromStorage('projects', []));
-      setClients(getFromStorage('clients', []));
+    const unsubProjects = subscribeToCollection<Project>('projects', setProjects);
+    const unsubClients = subscribeToCollection<Client>('clients', setClients);
+
+    return () => {
+      unsubProjects();
+      unsubClients();
     };
-
-    loadData();
-
-    window.addEventListener('storage', loadData);
-    return () => window.removeEventListener('storage', loadData);
   }, []);
 
-  const updateProjects = (newProjects: Project[]) => {
-    setProjects(newProjects);
-    saveToStorage('projects', newProjects);
-    window.dispatchEvent(new Event('storage'));
-  }
-
-  const handleProjectSave = (project: Omit<Project, 'id'> & { id?: string }) => {
-    let newProjects;
-    if (project.id) {
-      newProjects = projects.map(p => p.id === project.id ? project as Project : p);
-    } else {
-      const newProject = { ...project, id: `proj-${Date.now()}` } as Project;
-      newProjects = [newProject, ...projects];
+  const handleProjectSave = async (project: Omit<Project, 'id'> & { id?: string }) => {
+    try {
+      if (project.id) {
+        await updateData('projects', project.id, project);
+      } else {
+        await addData('projects', project);
+      }
+      toast({
+        title: 'Project Saved',
+        description: `The details for ${project.name} have been saved.`
+      });
+      setDialogOpen(false);
+    } catch (error) {
+       toast({
+        title: 'Error',
+        description: `Failed to save project.`
+      });
     }
-    updateProjects(newProjects);
-    toast({
-      title: 'Project Saved',
-      description: `The details for ${project.name} have been saved.`
-    });
-    setDialogOpen(false);
   };
   
   const getClientName = (clientId: string) => {

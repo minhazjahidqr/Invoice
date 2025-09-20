@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus, ImageOff } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
-import { defaultQuotationItems, type Client, type Quotation, getFromStorage, saveToStorage, type QuotationItem } from '@/lib/data';
+import { defaultQuotationItems, type Client, type Quotation, addData, type QuotationItem } from '@/lib/data';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -46,10 +46,9 @@ type QuotationFormValues = z.infer<typeof formSchema>;
 
 interface QuotationFormProps {
   clients: Client[];
-  onClientsUpdate: (clients: Client[]) => void;
 }
 
-export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) {
+export function QuotationForm({ clients }: QuotationFormProps) {
   const [isSuggesting, startSuggestionTransition] = useTransition();
   const [suggestions, setSuggestions] = useState('');
   const { toast } = useToast();
@@ -113,36 +112,41 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
     });
   };
 
-  function onClientSaved(client: Omit<Client, 'id'> & { id?: string }) {
-    let updatedClients;
+  async function onClientSaved(client: Omit<Client, 'id'> & { id?: string }) {
     let message = '';
-    let newClientId;
+    let newClientId = client.id;
   
-    if (client.id && clients.some(c => c.id === client.id)) {
-      // Update existing client
-      updatedClients = clients.map(c => (c.id === client.id ? client as Client : c));
-      message = `Client "${client.name}" has been updated.`;
-      newClientId = client.id;
-    } else {
-      // Add new client
-      const newClient = { ...client, id: `cli-${Date.now()}` } as Client;
-      updatedClients = [newClient, ...clients];
-      message = `Client "${newClient.name}" has been created.`;
-      newClientId = newClient.id;
+    try {
+      if (client.id) {
+        // Update existing client
+        await addData('clients', client);
+        message = `Client "${client.name}" has been updated.`;
+      } else {
+        // Add new client
+        const newClient = await addData('clients', client);
+        message = `Client "${newClient.name}" has been created.`;
+        newClientId = newClient.id;
+      }
+      
+      if (newClientId) {
+        form.setValue('clientId', newClientId, { shouldValidate: true });
+      }
+      toast({
+        title: 'Client Saved',
+        description: message,
+      });
+      setClientFormOpen(false);
+      setEditingClient(undefined);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to save client.',
+        variant: 'destructive'
+      })
     }
-    
-    saveToStorage('clients', updatedClients);
-    onClientsUpdate(updatedClients);
-    form.setValue('clientId', newClientId, { shouldValidate: true });
-    toast({
-      title: 'Client Saved',
-      description: message,
-    });
-    setClientFormOpen(false);
-    setEditingClient(undefined);
   }
 
-  function onSubmit(data: QuotationFormValues) {
+  async function onSubmit(data: QuotationFormValues) {
     const client = clients.find(c => c.id === data.clientId);
     if (!client) {
       toast({ title: 'Error', description: 'Selected client not found.', variant: 'destructive' });
@@ -156,10 +160,7 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
 
     const total = updatedItems.reduce((acc, item) => acc + item.total, 0);
     
-    const existingQuotations = getFromStorage<Quotation[]>('quotations', []);
-
-    const newQuotation: Quotation = {
-        id: `Q-${new Date().getFullYear()}-${String(existingQuotations.length + 1).padStart(3, '0')}`,
+    const newQuotation: Omit<Quotation, 'id'> = {
         clientId: client.id,
         projectName: data.projectName,
         date: new Date().toISOString(),
@@ -168,16 +169,20 @@ export function QuotationForm({ clients, onClientsUpdate }: QuotationFormProps) 
         items: updatedItems,
     };
 
-    const updatedQuotations = [newQuotation, ...existingQuotations];
-    saveToStorage('quotations', updatedQuotations);
-    window.dispatchEvent(new Event('storage'));
-
-    toast({
-      title: "Quotation Created!",
-      description: "The quotation has been saved successfully and marked as sent.",
-    });
-
-    router.push('/quotations');
+    try {
+      await addData('quotations', newQuotation);
+      toast({
+        title: "Quotation Created!",
+        description: "The quotation has been saved successfully and marked as sent.",
+      });
+      router.push('/quotations');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create quotation.",
+        variant: 'destructive'
+      });
+    }
   }
   
   const watchedItems = form.watch('items');

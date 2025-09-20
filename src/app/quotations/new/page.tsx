@@ -4,26 +4,16 @@
 import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { QuotationForm } from './quotation-form';
-import { getFromStorage, type Client } from '@/lib/data';
+import { subscribeToCollection, type Client } from '@/lib/data';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function NewQuotationPage() {
   const [clients, setClients] = useState<Client[]>([]);
 
   useEffect(() => {
-    const loadClients = () => {
-      setClients(getFromStorage('clients', []));
-    };
-
-    loadClients();
-    window.addEventListener('storage', loadClients);
-    
-    return () => window.removeEventListener('storage', loadClients);
+    const unsubscribe = subscribeToCollection<Client>('clients', setClients);
+    return () => unsubscribe();
   }, []);
-
-  const handleClientsUpdate = (updatedClients: Client[]) => {
-    setClients(updatedClients);
-  };
 
   return (
     <AppLayout>
@@ -39,10 +29,7 @@ export default function NewQuotationPage() {
                 <CardDescription>Fill out the details below to create a new quotation.</CardDescription>
             </CardHeader>
             <CardContent>
-                 <QuotationForm 
-                    clients={clients}
-                    onClientsUpdate={handleClientsUpdate}
-                 />
+                 <QuotationForm clients={clients} />
             </CardContent>
         </Card>
       </div>

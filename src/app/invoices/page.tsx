@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, Pencil, Trash2 } from 'lucide-react';
-import { getFromStorage, saveToStorage, type Invoice, type Client } from '@/lib/data';
+import { subscribeToCollection, updateData, deleteData, type Invoice, type Client } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -58,33 +58,30 @@ export default function InvoicesPage() {
   const [editingInvoice, setEditingInvoice] = useState<Invoice | undefined>(undefined);
 
   useEffect(() => {
-    const loadData = () => {
-      setInvoices(getFromStorage('invoices', []));
-      setClients(getFromStorage('clients', []));
+    const unsubInvoices = subscribeToCollection<Invoice>('invoices', setInvoices);
+    const unsubClients = subscribeToCollection<Client>('clients', setClients);
+    return () => {
+      unsubInvoices();
+      unsubClients();
     };
-    loadData();
-    window.addEventListener('storage', loadData);
-    return () => window.removeEventListener('storage', loadData);
   }, []);
-
-  const updateInvoices = (newInvoices: Invoice[]) => {
-    setInvoices(newInvoices);
-    saveToStorage('invoices', newInvoices);
-    window.dispatchEvent(new Event('storage'));
-  }
   
-  const handleInvoiceSave = (invoiceToSave: Invoice) => {
-    let message = '';
-    const newInvoices = invoices.map(inv => inv.id === invoiceToSave.id ? invoiceToSave : inv);
-    message = `Invoice ${invoiceToSave.id} has been updated.`;
-    
-    updateInvoices(newInvoices);
-    toast({
-      title: 'Invoice Saved',
-      description: message,
-    });
-    setFormDialogOpen(false);
-    setEditingInvoice(undefined);
+  const handleInvoiceSave = async (invoiceToSave: Invoice) => {
+    try {
+      await updateData('invoices', invoiceToSave.id, invoiceToSave);
+      toast({
+        title: 'Invoice Saved',
+        description: `Invoice ${invoiceToSave.id} has been updated.`,
+      });
+      setFormDialogOpen(false);
+      setEditingInvoice(undefined);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to save invoice.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleEditClick = (invoice: Invoice) => {
@@ -92,27 +89,39 @@ export default function InvoicesPage() {
     setFormDialogOpen(true);
   };
 
-  const handleDeleteInvoice = (invoiceId: string) => {
+  const handleDeleteInvoice = async (invoiceId: string) => {
     const invoiceToDelete = invoices.find(inv => inv.id === invoiceId);
     if (!invoiceToDelete) return;
-    const newInvoices = invoices.filter(inv => inv.id !== invoiceId);
-    updateInvoices(newInvoices);
-    toast({
-      title: 'Invoice Deleted',
-      description: `Invoice ${invoiceToDelete.id} has been deleted.`,
-      variant: 'destructive',
-    });
+    try {
+      await deleteData('invoices', invoiceId);
+      toast({
+        title: 'Invoice Deleted',
+        description: `Invoice ${invoiceToDelete.id} has been deleted.`,
+        variant: 'destructive',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to delete invoice.',
+        variant: 'destructive'
+      });
+    }
   }
   
-  const handleStatusChange = (invoiceId: string, newStatus: Invoice['status']) => {
-    const newInvoices = invoices.map(inv => 
-      inv.id === invoiceId ? { ...inv, status: newStatus } : inv
-    )
-    updateInvoices(newInvoices);
-    toast({
-      title: 'Invoice Status Updated',
-      description: `Invoice ${invoiceId} has been marked as ${newStatus}.`
-    });
+  const handleStatusChange = async (invoiceId: string, newStatus: Invoice['status']) => {
+    try {
+      await updateData('invoices', invoiceId, { status: newStatus });
+      toast({
+        title: 'Invoice Status Updated',
+        description: `Invoice ${invoiceId} has been marked as ${newStatus}.`
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update status.',
+        variant: 'destructive'
+      });
+    }
   };
   
   const handleDownloadPdf = (invoiceId: string) => {

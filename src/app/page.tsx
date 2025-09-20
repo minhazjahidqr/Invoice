@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Receipt, ArrowUpRight, MoreHorizontal, DollarSign } from 'lucide-react';
-import { getFromStorage, saveToStorage, type Quotation, type Invoice, type Client } from '@/lib/data';
+import { subscribeToCollection, updateData, type Quotation, type Invoice, type Client } from '@/lib/data';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -47,50 +47,47 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
-    const loadData = () => {
-        setQuotations(getFromStorage('quotations', []));
-        setInvoices(getFromStorage('invoices', []));
-        setClients(getFromStorage('clients', []));
+    const unsubQuotations = subscribeToCollection<Quotation>('quotations', setQuotations);
+    const unsubInvoices = subscribeToCollection<Invoice>('invoices', setInvoices);
+    const unsubClients = subscribeToCollection<Client>('clients', setClients);
+
+    return () => {
+      unsubQuotations();
+      unsubInvoices();
+      unsubClients();
     };
-
-    loadData();
-
-    window.addEventListener('storage', loadData);
-    return () => window.removeEventListener('storage', loadData);
   }, []);
 
-  const updateQuotations = (newQuotations: Quotation[]) => {
-    setQuotations(newQuotations);
-    saveToStorage('quotations', newQuotations);
-    window.dispatchEvent(new Event('storage'));
-  };
-
-  const updateInvoices = (newInvoices: Invoice[]) => {
-    setInvoices(newInvoices);
-    saveToStorage('invoices', newInvoices);
-    window.dispatchEvent(new Event('storage'));
-  }
-
-  const handleQuotationStatusChange = (quotationId: string, newStatus: Quotation['status']) => {
-    const newQuotations = quotations.map(quo =>
-      quo.id === quotationId ? { ...quo, status: newStatus } : quo
-    );
-    updateQuotations(newQuotations);
-    toast({
-      title: 'Quotation Status Updated',
-      description: `Quotation ${quotationId} has been marked as ${newStatus}.`
-    });
+  const handleQuotationStatusChange = async (quotationId: string, newStatus: Quotation['status']) => {
+    try {
+      await updateData('quotations', quotationId, { status: newStatus });
+      toast({
+        title: 'Quotation Status Updated',
+        description: `Quotation ${quotationId} has been marked as ${newStatus}.`
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update quotation status.',
+        variant: 'destructive',
+      });
+    }
   };
   
-  const handleInvoiceStatusChange = (invoiceId: string, newStatus: Invoice['status']) => {
-    const newInvoices = invoices.map(inv => 
-      inv.id === invoiceId ? { ...inv, status: newStatus } : inv
-    );
-    updateInvoices(newInvoices);
-    toast({
-      title: 'Invoice Status Updated',
-      description: `Invoice ${invoiceId} has been marked as ${newStatus}.`
-    });
+  const handleInvoiceStatusChange = async (invoiceId: string, newStatus: Invoice['status']) => {
+    try {
+      await updateData('invoices', invoiceId, { status: newStatus });
+      toast({
+        title: 'Invoice Status Updated',
+        description: `Invoice ${invoiceId} has been marked as ${newStatus}.`
+      });
+    } catch (error) {
+       toast({
+        title: 'Error',
+        description: 'Failed to update invoice status.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const getClientName = (clientId: string) => {

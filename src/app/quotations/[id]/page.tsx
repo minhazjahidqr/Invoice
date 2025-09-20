@@ -4,7 +4,7 @@
 import { useRef, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AppLayout } from '@/components/app-layout';
-import { getFromStorage, saveToStorage, type Quotation, type Client, type Invoice } from '@/lib/data';
+import { getData, addData, type Quotation, type Client, type Invoice } from '@/lib/data';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Separator } from '@/components/ui/separator';
@@ -28,6 +28,16 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
   const [settings, setSettings] = useState<SettingsFormValues>(defaultSettings);
 
   useEffect(() => {
+    async function loadData() {
+        const currentQuotation = await getData<Quotation>('quotations', params.id);
+        setQuotation(currentQuotation ?? undefined);
+
+        if (currentQuotation) {
+            const currentClient = await getData<Client>('clients', currentQuotation.clientId);
+            setClient(currentClient ?? undefined);
+        }
+    }
+
     const onStorageChange = () => {
       const savedSettings = localStorage.getItem('app-settings');
       if (savedSettings) {
@@ -35,18 +45,9 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
       } else {
         setSettings(defaultSettings);
       }
-
-      const quotations = getFromStorage<Quotation[]>('quotations', []);
-      const foundQuotation = quotations.find(q => q.id === params.id);
-      setQuotation(foundQuotation);
-
-      if (foundQuotation) {
-        const clients = getFromStorage<Client[]>('clients', []);
-        const foundClient = clients.find(c => c.id === foundQuotation.clientId);
-        setClient(foundClient);
-      }
     }
     
+    loadData();
     onStorageChange();
     window.addEventListener('storage', onStorageChange);
     return () => window.removeEventListener('storage', onStorageChange);
@@ -91,36 +92,39 @@ export default function QuotationDetailPage({ params }: { params: { id: string }
     }
   };
 
-  const handleConvertToInvoice = () => {
+  const handleConvertToInvoice = async () => {
     if (!quotation) return;
 
-    const existingInvoices = getFromStorage<Invoice[]>('invoices', []);
-    const newInvoiceId = `INV-${new Date().getFullYear()}-${String(existingInvoices.length + 1).padStart(3, '0')}`;
-    const dueDate = new Date();
-    dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
+    try {
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 30); // Due in 30 days
 
-    const newInvoice: Invoice = {
-        id: newInvoiceId,
-        quotationId: quotation.id,
-        clientId: quotation.clientId,
-        projectName: quotation.projectName,
-        date: new Date().toISOString(),
-        dueDate: dueDate.toISOString(),
-        total: quotation.total,
-        status: 'Draft',
-        items: quotation.items || [],
-    };
+        const newInvoice: Omit<Invoice, 'id'> = {
+            quotationId: quotation.id,
+            clientId: quotation.clientId,
+            projectName: quotation.projectName,
+            date: new Date().toISOString(),
+            dueDate: dueDate.toISOString(),
+            total: quotation.total,
+            status: 'Draft',
+            items: quotation.items || [],
+        };
 
-    const updatedInvoices = [newInvoice, ...existingInvoices];
-    saveToStorage('invoices', updatedInvoices);
-    window.dispatchEvent(new Event('storage'));
+        const addedInvoice = await addData('invoices', newInvoice);
 
-    toast({
-        title: 'Invoice Created',
-        description: `Invoice ${newInvoiceId} has been created from Quotation ${quotation.id}.`,
-    });
+        toast({
+            title: 'Invoice Created',
+            description: `Invoice ${addedInvoice.id} has been created from Quotation ${quotation.id}.`,
+        });
 
-    router.push(`/invoices/${newInvoiceId}`);
+        router.push(`/invoices/${addedInvoice.id}`);
+    } catch (error) {
+        toast({
+            title: "Conversion Failed",
+            description: "Could not convert quotation to invoice. Please try again.",
+            variant: "destructive",
+        });
+    }
   };
 
   if (!quotation || !client) {
