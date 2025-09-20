@@ -17,7 +17,7 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { getStoredUsers, updateUser, type User } from '@/lib/auth';
+import { getPersistedUsers, updateUser, type User } from '@/lib/auth';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { UserEditForm } from './user-edit-form';
@@ -124,16 +124,16 @@ function UserManagement() {
     const { toast } = useToast();
 
     useEffect(() => {
-        setUsers(getStoredUsers());
+        getPersistedUsers().then(setUsers);
     }, []);
 
     const handleEditClick = (user: User) => {
         setEditingUser(user);
     };
 
-    const handleUserSave = (updatedUser: User) => {
+    const handleUserSave = async (updatedUser: Partial<User> & { id: string }) => {
         try {
-            const newUsers = updateUser(updatedUser);
+            const newUsers = await updateUser(updatedUser);
             setUsers(newUsers);
             setEditingUser(null);
             toast({
@@ -782,6 +782,3 @@ export function SettingsForm() {
       </Form>
   );
 }
-
-    
-    

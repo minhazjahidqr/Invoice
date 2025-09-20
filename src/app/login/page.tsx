@@ -12,7 +12,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Icons } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
-import { login, getCurrentUser, updateUser, type User } from '@/lib/auth';
+import { login, updateUser, type User } from '@/lib/auth';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const formSchema = z.object({
@@ -81,17 +81,20 @@ export default function LoginPage() {
   const handlePasswordSet = async (values: z.infer<typeof passwordSchema>) => {
     if (!firstLoginUser) return;
     try {
-      await updateUser({ ...firstLoginUser, password: values.newPassword, requiresPasswordChange: false });
+      await updateUser({ id: firstLoginUser.id, password: values.newPassword });
       toast({
         title: 'Password Set Successfully',
         description: 'You can now log in with your new password.',
       });
-      const user = getCurrentUser();
-      if(user) {
+      setFirstLoginUser(null);
+      // Automatically log in the user after they set their password
+      const loggedInUser = await login(firstLoginUser.email, values.newPassword);
+       if (loggedInUser) {
           router.push('/');
-      } else {
-          setFirstLoginUser(null);
-      }
+       } else {
+          // This case should ideally not happen
+          form.reset();
+       }
     } catch (error) {
       toast({
         title: 'Error',

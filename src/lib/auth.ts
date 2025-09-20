@@ -1,54 +1,36 @@
 
 'use client';
 
-// This is a mock authentication service.
-// In a real application, you would replace this with a proper authentication provider.
+import { addData } from './data';
+import { db } from './firebase';
+import { getDocs, query, collection, where, updateDoc, doc } from 'firebase/firestore';
 
 const USER_STORAGE_KEY = 'auth_user';
-const USERS_STORAGE_KEY = 'auth_users_list';
 
 export type User = {
     id: string;
     name: string;
     email: string;
-    password?: string; // Should be hashed in a real app
+    password?: string; 
     requiresPasswordChange?: boolean;
 };
 
-// Mock user database
-export function getStoredUsers(): User[] {
-    if (typeof window === 'undefined') return [];
-    const usersJson = localStorage.getItem(USERS_STORAGE_KEY);
-    if (usersJson) {
-        try {
-            return JSON.parse(usersJson);
-        } catch (e) {
-            console.error("Failed to parse users from localStorage", e);
-            // If parsing fails, fall back to default
-        }
+async function getStoredUsers(): Promise<User[]> {
+    const usersSnapshot = await getDocs(query(collection(db, "users")));
+    if (usersSnapshot.empty) {
+        // This will run only if there are absolutely no users.
+        const defaultUser: Omit<User, 'id'> = { name: 'user', email: 'user@example.com', password: 'password', requiresPasswordChange: true };
+        const newUser = await addData('users', defaultUser);
+        return [newUser];
     }
-    const defaultUsers: User[] = [
-        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password', requiresPasswordChange: true },
-    ];
-    saveStoredUsers(defaultUsers);
-    return defaultUsers;
-}
-
-function saveStoredUsers(users: User[]) {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-}
-
-// Initialize with a default user if none exist
-if (typeof window !== 'undefined' && !localStorage.getItem(USERS_STORAGE_KEY)) {
-    getStoredUsers();
+    return usersSnapshot.docs.map(doc => doc.data() as User);
 }
 
 export async function login(usernameOrEmail: string, passwordInput: string): Promise<User | null> {
-    const users = getStoredUsers();
+    const users = await getStoredUsers();
     const normalizedInput = usernameOrEmail.toLowerCase();
     const user = users.find(
-      (u) => u.name.toLowerCase() === normalizedInput || u.email.toLowerCase() === normalizedInput
+      (u) => (u.name.toLowerCase() === normalizedInput || u.email.toLowerCase() === normalizedInput)
     );
   
     if (user && user.password === passwordInput) {
@@ -74,52 +56,70 @@ export function getCurrentUser(): User | null {
     const userJson = localStorage.getItem(USER_STORAGE_KEY);
     if (!userJson) return null;
     try {
-        const user = JSON.parse(userJson);
-        // We need the full user object from the main list to check for password change requirements
-        const allUsers = getStoredUsers();
-        return allUsers.find(u => u.id === user.id) || null;
+        return JSON.parse(userJson);
     } catch (error) {
         return null;
     }
 }
 
-export function updateUser(updatedUser: User): User[] {
-    const users = getStoredUsers();
-    const userIndex = users.findIndex(u => u.id === updatedUser.id);
+export async function updateUser(updatedUser: Partial<User> & { id: string }): Promise<User[]> {
+    const usersCollection = collection(db, 'users');
+    // Firestore's native document ID is not the same as our user 'id' field. We need to query for the document.
+    const q = query(usersCollection, where("id", "==", updatedUser.id));
+    const userSnapshot = await getDocs(q);
 
-    if (userIndex === -1) {
+    if (userSnapshot.empty) {
         throw new Error('User not found');
     }
 
-    const existingUser = users[userIndex];
+    const userDocRef = userSnapshot.docs[0].ref;
+
+    // Build the data object for update, ensuring we don't save an empty password.
+    const updateData: Partial<User> = {
+        name: updatedUser.name,
+        email: updatedUser.email,
+    };
     
-    const newPassword = updatedUser.password && updatedUser.password.length > 0
-        ? updatedUser.password
-        : existingUser.password;
+    if (updatedUser.password && updatedUser.password.length > 0) {
+        updateData.password = updatedUser.password;
+        // When an admin sets a password, we assume it no longer requires a change.
+        updateData.requiresPasswordChange = false;
+    }
 
-    const requiresPasswordChange = updatedUser.password && updatedUser.password.length > 0 && updatedUser.password !== existingUser.password
-        ? false
-        : existingUser.requiresPasswordChange;
+    await updateDoc(userDocRef, updateData);
 
-    const userWithUpdatedPassword = { ...updatedUser, password: newPassword, requiresPasswordChange };
-
-    const newUsers = [
-        ...users.slice(0, userIndex),
-        userWithUpdatedPassword,
-        ...users.slice(userIndex + 1),
-    ];
-    
-    saveStoredUsers(newUsers);
-
-    // Also update current user session if it's the one being edited
+    // If the currently logged-in user is the one being updated, refresh their localStorage data.
     const currentUser = getCurrentUser();
     if (currentUser && currentUser.id === updatedUser.id) {
          if (typeof window !== 'undefined') {
-            const { password, ...userToStore } = userWithUpdatedPassword;
+            const newCurrentUser = { ...currentUser, ...updateData };
+            const { password, ...userToStore } = newCurrentUser;
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
-            window.dispatchEvent(new Event('storage'));
+            window.dispatchEvent(new Event('storage')); // Notify layout to re-render
         }
     }
     
-    return newUsers;
+    return getStoredUsers(); // Return the updated list of all users
+}
+
+
+export async function getPersistedUsers(): Promise<User[]> {
+    return getStoredUsers();
+}
+
+
+// Seed initial user if the user collection is empty.
+// This is helpful for the first run of the application.
+async function seedInitialUsers() {
+    const usersSnapshot = await getDocs(query(collection(db, "users")));
+    if (usersSnapshot.empty) {
+        console.log("No users found, seeding default user.");
+        const defaultUser: Omit<User, 'id'> = { name: 'user', email: 'user@example.com', password: 'password', requiresPasswordChange: true };
+        await addData('users', defaultUser);
+    }
+}
+
+// Ensure this only runs on the client-side
+if (typeof window !== 'undefined') {
+    seedInitialUsers();
 }

@@ -20,7 +20,7 @@ type UserFormValues = z.infer<typeof formSchema>;
 
 interface UserFormProps {
   user: User;
-  onSave: (user: User) => void;
+  onSave: (user: Partial<User> & { id: string }) => void;
   onCancel: () => void;
 }
 
@@ -36,7 +36,7 @@ export function UserEditForm({ user, onSave, onCancel }: UserFormProps) {
   });
 
   function onSubmit(data: UserFormValues) {
-    onSave(data as User);
+    onSave(data);
   }
 
   return (
@@ -92,4 +92,3 @@ export function UserEditForm({ user, onSave, onCancel }: UserFormProps) {
     </Form>
   );
 }
-

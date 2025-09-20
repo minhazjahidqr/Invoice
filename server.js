@@ -3,12 +3,13 @@ const { parse } = require('url');
 const next = require('next');
 
 const dev = process.env.NODE_ENV !== 'production';
-const hostname = 'localhost';
+// When using Docker or other containerized environments, listening on 0.0.0.0 is crucial.
+const hostname = '0.0.0.0';
 const port = process.env.PORT || 3000;
 
 // When using Next.js with a custom server,
 // the Next.js app must be initialized in the server file.
-const app = next({ dev, hostname, port });
+const app = next({ dev });
 const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
@@ -26,7 +27,7 @@ app.prepare().then(() => {
       console.error(err);
       process.exit(1);
     })
-    .listen(port, () => {
+    .listen(port, hostname, () => {
       console.log(`> Ready on http://${hostname}:${port}`);
     });
 });

@@ -178,11 +178,11 @@ async function seedInitialData() {
               if(quotationsSnapshot.empty) {
                   const quotationBatch = writeBatch(db);
                   const initialMockQuotations: Omit<Quotation, 'id' | 'clientId' | 'items'>[] = [
-                    { projectName: 'Office Security Upgrade', date: Timestamp.fromDate(new Date('2024-07-15')).toDate().toISOString(), total: 1075, status: 'Approved' },
-                    { projectName: 'New HQ Network Setup', date: Timestamp.fromDate(new Date('2024-07-18')).toDate().toISOString(), total: 25000, status: 'Sent' },
-                    { projectName: 'Warehouse Surveillance System', date: Timestamp.fromDate(new Date('2024-07-20')).toDate().toISOString(), total: 8500, status: 'Draft' },
-                    { projectName: 'Retail Store Audio System', date: Timestamp.fromDate(new Date('2024-07-22')).toDate().toISOString(), total: 4200, status: 'Rejected' },
-                    { projectName: 'Phase 2 Network Expansion', date: Timestamp.fromDate(new Date('2024-07-25')).toDate().toISOString(), total: 18000, status: 'Sent' },
+                    { projectName: 'Office Security Upgrade', date: new Date('2024-07-15').toISOString(), total: 1075, status: 'Approved' },
+                    { projectName: 'New HQ Network Setup', date: new Date('2024-07-18').toISOString(), total: 25000, status: 'Sent' },
+                    { projectName: 'Warehouse Surveillance System', date: new Date('2024-07-20').toISOString(), total: 8500, status: 'Draft' },
+                    { projectName: 'Retail Store Audio System', date: new Date('2024-07-22').toISOString(), total: 4200, status: 'Rejected' },
+                    { projectName: 'Phase 2 Network Expansion', date: new Date('2024-07-25').toISOString(), total: 18000, status: 'Sent' },
                   ];
                   initialMockQuotations.forEach((quo, index) => {
                       const client = clients[index % clients.length];
@@ -198,10 +198,10 @@ async function seedInitialData() {
                   const invoiceBatch = writeBatch(db);
                   const quotations = (await getDocs(collection(db, "quotations"))).docs.map(d => d.data() as Quotation);
                   const initialMockInvoices: Omit<Invoice, 'id' | 'clientId' | 'quotationId' | 'items'>[] = [
-                    { projectName: 'Office Security Upgrade', date: Timestamp.fromDate(new Date('2024-07-20')).toDate().toISOString(), dueDate: Timestamp.fromDate(new Date('2024-08-19')).toDate().toISOString(), total: 12500, status: 'Sent' },
-                    { projectName: 'Legacy System Maintenance', date: Timestamp.fromDate(new Date('2024-06-10')).toDate().toISOString(), dueDate: Timestamp.fromDate(new Date('2024-07-10')).toDate().toISOString(), total: 1500, status: 'Paid' },
-                    { projectName: 'Fire Alarm Inspection', date: Timestamp.fromDate(new Date('2024-05-01')).toDate().toISOString(), dueDate: Timestamp.fromDate(new Date('2024-05-31')).toDate().toISOString(), total: 800, status: 'Overdue' },
-                    { projectName: 'Q2 Support Contract', date: Timestamp.fromDate(new Date('2024-07-01')).toDate().toISOString(), dueDate: Timestamp.fromDate(new Date('2024-07-31')).toDate().toISOString(), total: 3000, status: 'Paid' },
+                    { projectName: 'Office Security Upgrade', date: new Date('2024-07-20').toISOString(), dueDate: new Date('2024-08-19').toISOString(), total: 12500, status: 'Sent' },
+                    { projectName: 'Legacy System Maintenance', date: new Date('2024-06-10').toISOString(), dueDate: new Date('2024-07-10').toISOString(), total: 1500, status: 'Paid' },
+                    { projectName: 'Fire Alarm Inspection', date: new Date('2024-05-01').toISOString(), dueDate: new Date('2024-05-31').toISOString(), total: 800, status: 'Overdue' },
+                    { projectName: 'Q2 Support Contract', date: new Date('2024-07-01').toISOString(), dueDate: new Date('2024-07-31').toISOString(), total: 3000, status: 'Paid' },
                   ];
                    initialMockInvoices.forEach((inv, index) => {
                       const client = clients[index % clients.length];

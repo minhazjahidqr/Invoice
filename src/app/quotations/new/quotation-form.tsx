@@ -17,7 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { BrainCircuit, Loader2, PlusCircle, Trash2, Wand2, Upload, Mail, Phone, MapPin, Pencil, UserPlus, ImageOff } from 'lucide-react';
 import { suggestElvComponentsAction } from '../actions';
 import { useToast } from '@/hooks/use-toast';
-import { defaultQuotationItems, type Client, type Quotation, addData, type QuotationItem } from '@/lib/data';
+import { defaultQuotationItems, type Client, type Quotation, addData, type QuotationItem, updateData } from '@/lib/data';
 import Image from 'next/image';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -118,11 +118,9 @@ export function QuotationForm({ clients }: QuotationFormProps) {
   
     try {
       if (client.id) {
-        // Update existing client
-        await addData('clients', client);
+        await updateData('clients', client.id, client as Client);
         message = `Client "${client.name}" has been updated.`;
       } else {
-        // Add new client
         const newClient = await addData('clients', client);
         message = `Client "${newClient.name}" has been created.`;
         newClientId = newClient.id;
