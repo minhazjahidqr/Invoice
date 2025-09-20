@@ -2,15 +2,17 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
-import { subscribeToCollection, addData, updateData, type Project, type Client } from '@/lib/data';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
+import { subscribeToCollection, addData, updateData, deleteData, type Project, type Client } from '@/lib/data';
+import { MoreHorizontal, PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { ProjectForm } from './project-form';
 
@@ -19,6 +21,7 @@ export default function ProjectsPage() {
   const [clients, setClients] = useState<Client[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | undefined>(undefined);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -35,22 +38,58 @@ export default function ProjectsPage() {
     try {
       if (project.id) {
         await updateData('projects', project.id, project);
+        toast({
+          title: 'Project Updated',
+          description: `The details for ${project.name} have been updated.`
+        });
       } else {
         await addData('projects', project);
+        toast({
+          title: 'Project Added',
+          description: `The project ${project.name} has been created.`
+        });
       }
-      toast({
-        title: 'Project Saved',
-        description: `The details for ${project.name} have been saved.`
-      });
       setDialogOpen(false);
+      setEditingProject(undefined);
     } catch (error) {
        toast({
         title: 'Error',
-        description: `Failed to save project.`
+        description: `Failed to save project.`,
+        variant: 'destructive',
       });
     }
   };
   
+  const handleEditClick = (project: Project) => {
+    setEditingProject(project);
+    setDialogOpen(true);
+  };
+  
+  const handleAddNewClick = () => {
+    setEditingProject(undefined);
+    setDialogOpen(true);
+  };
+  
+  const handleDeleteProject = async (projectId: string) => {
+    const projectToDelete = projects.find(p => p.id === projectId);
+    if (!projectToDelete) return;
+    
+    try {
+        await deleteData('projects', projectId);
+        toast({
+            title: 'Project Deleted',
+            description: `The project "${projectToDelete.name}" has been deleted.`,
+            variant: 'destructive',
+        });
+    } catch (error) {
+        toast({
+            title: 'Error Deleting Project',
+            description: (error as Error).message,
+            variant: 'destructive',
+        });
+    }
+  };
+
   const getClientName = (clientId: string) => {
     return clients.find(c => c.id === clientId)?.name || 'Unknown Client';
   }
@@ -62,7 +101,10 @@ export default function ProjectsPage() {
 
   return (
     <AppLayout>
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(isOpen) => {
+          setDialogOpen(isOpen);
+          if (!isOpen) setEditingProject(undefined);
+      }}>
         <Card>
           <CardHeader>
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -72,11 +114,9 @@ export default function ProjectsPage() {
                   Track all your projects from start to finish.
                 </CardDescription>
               </div>
-              <DialogTrigger asChild>
-                <Button className="w-full md:w-auto">
+               <Button onClick={handleAddNewClick} className="w-full md:w-auto">
                   <PlusCircle className="mr-2 h-4 w-4" /> Add New Project
                 </Button>
-              </DialogTrigger>
             </div>
           </CardHeader>
           <CardContent>
@@ -88,44 +128,73 @@ export default function ProjectsPage() {
                 className="max-w-sm"
               />
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Project Name</TableHead>
-                  <TableHead>Client</TableHead>
-                  <TableHead>
-                    <span className="sr-only">Actions</span>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProjects.map((project) => (
-                  <TableRow key={project.id}>
-                    <TableCell className="font-medium">{project.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{getClientName(project.clientId)}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive">
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <div className="overflow-x-auto">
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Project Name</TableHead>
+                    <TableHead>Client</TableHead>
+                    <TableHead className="text-right">
+                        <span className="sr-only">Actions</span>
+                    </TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {filteredProjects.map((project) => (
+                    <TableRow key={project.id}>
+                        <TableCell className="font-medium">
+                            <Link href={`/projects/${project.id}`} className="hover:underline">
+                                {project.name}
+                            </Link>
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">{getClientName(project.clientId)}</TableCell>
+                        <TableCell className="text-right">
+                        <AlertDialog>
+                            <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/projects/${project.id}`}>View Details</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleEditClick(project)}>
+                                <Pencil className="mr-2 h-4 w-4" /> Edit
+                                </DropdownMenuItem>
+                                <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive" onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                            </DropdownMenu>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                    This will permanently delete the project &quot;{project.name}&quot;.
+                                    This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteProject(project.id)}>
+                                    Delete
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                </TableBody>
+                </Table>
+            </div>
             {filteredProjects.length === 0 && (
                <div className="text-center py-10 text-muted-foreground">
                   No projects found for &quot;{searchTerm}&quot;.
@@ -135,12 +204,15 @@ export default function ProjectsPage() {
         </Card>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Add New Project</DialogTitle>
+            <DialogTitle>{editingProject ? 'Edit Project' : 'Add New Project'}</DialogTitle>
             <DialogDescription>
-              Fill in the details below to create a new project.
+              {editingProject 
+                ? `Update the details for ${editingProject.name}.`
+                : 'Fill in the details below to create a new project.'
+              }
             </DialogDescription>
           </DialogHeader>
-          <ProjectForm onSave={handleProjectSave} clients={clients} />
+          <ProjectForm project={editingProject} onSave={handleProjectSave} clients={clients} />
         </DialogContent>
       </Dialog>
     </AppLayout>

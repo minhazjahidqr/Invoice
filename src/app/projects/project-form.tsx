@@ -9,8 +9,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { Client, Project } from '@/lib/data';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
+  id: z.string().optional(),
   name: z.string().min(2, 'Project name must be at least 2 characters.'),
   clientId: z.string().min(1, 'A client must be selected.'),
 });
@@ -31,6 +33,14 @@ export function ProjectForm({ project, clients, onSave }: ProjectFormProps) {
       clientId: '',
     },
   });
+
+  useEffect(() => {
+    if (project) {
+        form.reset(project);
+    } else {
+        form.reset({ name: '', clientId: '' });
+    }
+  }, [project, form]);
 
   function onSubmit(data: ProjectFormValues) {
     onSave(data);
@@ -58,7 +68,7 @@ export function ProjectForm({ project, clients, onSave }: ProjectFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Client</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a client" />
