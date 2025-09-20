@@ -12,6 +12,7 @@ export type User = {
     name: string;
     email: string;
     password?: string; // Should be hashed in a real app
+    requiresPasswordChange?: boolean;
 };
 
 // Mock user database
@@ -27,7 +28,7 @@ export function getStoredUsers(): User[] {
         }
     }
     const defaultUsers: User[] = [
-        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password' },
+        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password', requiresPasswordChange: true },
     ];
     saveStoredUsers(defaultUsers);
     return defaultUsers;
@@ -40,10 +41,7 @@ function saveStoredUsers(users: User[]) {
 
 // Initialize with a default user if none exist
 if (typeof window !== 'undefined' && !localStorage.getItem(USERS_STORAGE_KEY)) {
-    const defaultUsers: User[] = [
-        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password' },
-    ];
-    saveStoredUsers(defaultUsers);
+    getStoredUsers();
 }
 
 export async function login(usernameOrEmail: string, password?: string): Promise<User> {
@@ -55,15 +53,13 @@ export async function login(usernameOrEmail: string, password?: string): Promise
         u.email.toLowerCase() === normalizedIdentifier
     );
     
-    // In a real app, you would have secure password verification.
     if (user && user.password === password) {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && !user.requiresPasswordChange) {
             const { password, ...userToStore } = user;
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
             window.dispatchEvent(new Event('storage'));
         }
-        const { password: _, ...userToReturn } = user;
-        return Promise.resolve(userToReturn);
+        return Promise.resolve(user);
     }
     
     return Promise.reject(new Error('Invalid username or password'));
@@ -95,13 +91,21 @@ export function updateUser(updatedUser: User): User[] {
         throw new Error('User not found');
     }
 
-    // Preserve password if not provided
     const existingUser = users[userIndex];
-    const newPassword = updatedUser.password ? updatedUser.password : existingUser.password;
+    
+    const newPassword = updatedUser.password && updatedUser.password.length > 0
+        ? updatedUser.password
+        : existingUser.password;
+
+    const requiresPasswordChange = updatedUser.password && updatedUser.password.length > 0
+        ? false
+        : existingUser.requiresPasswordChange;
+
+    const userWithUpdatedPassword = { ...updatedUser, password: newPassword, requiresPasswordChange };
 
     const newUsers = [
         ...users.slice(0, userIndex),
-        { ...updatedUser, password: newPassword },
+        userWithUpdatedPassword,
         ...users.slice(userIndex + 1),
     ];
     
@@ -111,7 +115,7 @@ export function updateUser(updatedUser: User): User[] {
     const currentUser = getCurrentUser();
     if (currentUser && currentUser.id === updatedUser.id) {
          if (typeof window !== 'undefined') {
-            const { password, ...userToStore } = updatedUser;
+            const { password, ...userToStore } = userWithUpdatedPassword;
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
             window.dispatchEvent(new Event('storage'));
         }
