@@ -22,13 +22,14 @@ import {
   Users,
   Briefcase,
   Settings,
+  LogOut,
 } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import React, { useState, useEffect } from 'react';
-import { getCurrentUser } from '@/lib/auth';
+import { getCurrentUser, logout, type User } from '@/lib/auth';
 import { defaultSettings } from '@/app/settings/settings-form';
 
 const navItems = [
@@ -41,13 +42,7 @@ const navItems = [
 
 const settingsItem = { href: '/settings', label: 'Settings', icon: Settings };
 
-type User = {
-    id: string;
-    name: string;
-    email: string;
-}
-
-function applySettings(settings: any) {
+function applyTheme(settings: any) {
     try {
         if (typeof window !== 'undefined') {
             const root = document.documentElement;
@@ -85,36 +80,54 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [appName, setAppName] = useState('QuoteCraft ELV');
   const [user, setUser] = useState<User | null>(null);
-  const [, setTick] = React.useState(0);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+        router.push('/login');
+    } else {
+        setUser(currentUser);
+    }
+
     const onStorage = () => {
-      setTick(t => t + 1);
       const savedSettings = localStorage.getItem('app-settings');
       let parsedSettings = defaultSettings;
       if (savedSettings) {
         try {
           parsedSettings = { ...defaultSettings, ...JSON.parse(savedSettings) };
         } catch (e) {
-            // Do nothing, use default settings
+            console.warn("Could not parse settings from localStorage", e);
         }
       }
-      applySettings(parsedSettings);
-
+      applyTheme(parsedSettings);
       if (parsedSettings.appName) {
         setAppName(parsedSettings.appName);
       }
       const updatedUser = getCurrentUser();
       setUser(updatedUser);
+      if (!updatedUser && pathname !== '/login') {
+          router.push('/login');
+      }
     };
 
     window.addEventListener('storage', onStorage);
     onStorage(); 
 
     return () => window.removeEventListener('storage', onStorage);
-  }, [router]);
+  }, [router, pathname]);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar');
+  
+  if (!user && isClient) {
+      return null;
+  }
 
   return (
     <SidebarProvider>
@@ -169,6 +182,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                     </div>
                 </SidebarMenuButton>
             </SidebarMenuItem>}
+             <SidebarMenuItem>
+                <SidebarMenuButton onClick={handleLogout} tooltip={{children: "Logout"}}>
+                    <LogOut/>
+                    <span>Logout</span>
+                </SidebarMenuButton>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarFooter>
       </Sidebar>

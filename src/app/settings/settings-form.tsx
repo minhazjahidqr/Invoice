@@ -11,17 +11,16 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { Label } from '@/components/ui/label';
-import { Upload, Moon, Sun, Computer, Users, MoreHorizontal, Pencil } from 'lucide-react';
+import { Upload, Computer, Users, MoreHorizontal, Pencil } from 'lucide-react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { getStoredUsers, updateUser, type User } from '@/lib/auth';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-
+import { UserEditForm } from './user-edit-form';
 
 const settingsSchema = z.object({
   appName: z.string().optional(),
@@ -117,6 +116,84 @@ function applySettings(settings: SettingsFormValues) {
     if (logoPlaceholder && settings.companyLogo) {
       logoPlaceholder.imageUrl = settings.companyLogo;
     }
+}
+
+function UserManagement() {
+    const [users, setUsers] = useState<User[]>([]);
+    const [editingUser, setEditingUser] = useState<User | null>(null);
+    const { toast } = useToast();
+
+    useEffect(() => {
+        setUsers(getStoredUsers());
+    }, []);
+
+    const handleEditClick = (user: User) => {
+        setEditingUser(user);
+    };
+
+    const handleUserSave = (updatedUser: User) => {
+        try {
+            const newUsers = updateUser(updatedUser);
+            setUsers(newUsers);
+            setEditingUser(null);
+            toast({
+                title: 'User Updated',
+                description: `Details for ${updatedUser.name} have been updated.`
+            });
+        } catch(error) {
+            toast({
+                title: 'Error',
+                description: (error as Error).message,
+                variant: 'destructive'
+            });
+        }
+    };
+    
+    return (
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Users /> User Management</CardTitle>
+                    <CardDescription>Manage user accounts and permissions.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Name</TableHead>
+                                <TableHead>Email</TableHead>
+                                <TableHead><span className="sr-only">Actions</span></TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {users.map(user => (
+                                <TableRow key={user.id}>
+                                    <TableCell>{user.name}</TableCell>
+                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button variant="ghost" size="icon" onClick={() => handleEditClick(user)}>
+                                            <Pencil className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+            <Dialog open={!!editingUser} onOpenChange={(isOpen) => !isOpen && setEditingUser(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Edit User</DialogTitle>
+                        <DialogDescription>
+                            Editing details for {editingUser?.name}.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {editingUser && <UserEditForm user={editingUser} onSave={handleUserSave} onCancel={() => setEditingUser(null)}/>}
+                </DialogContent>
+            </Dialog>
+        </>
+    );
 }
 
 export function SettingsForm() {
@@ -699,6 +776,8 @@ export function SettingsForm() {
                       </CardContent>
                   </Card>
               </div>
+          
+              <UserManagement />
           </form>
       </Form>
   );

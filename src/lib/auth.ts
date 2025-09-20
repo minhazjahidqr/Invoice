@@ -28,7 +28,7 @@ export function getStoredUsers(): User[] {
         }
     }
     const defaultUsers: User[] = [
-        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password', requiresPasswordChange: false },
+        { id: 'user-1', name: 'user', email: 'user@example.com', password: 'password', requiresPasswordChange: true },
     ];
     saveStoredUsers(defaultUsers);
     return defaultUsers;
@@ -44,35 +44,40 @@ if (typeof window !== 'undefined' && !localStorage.getItem(USERS_STORAGE_KEY)) {
     getStoredUsers();
 }
 
+export async function login(usernameOrEmail: string, passwordInput: string): Promise<User | null> {
+    const users = getStoredUsers();
+    const normalizedInput = usernameOrEmail.toLowerCase();
+    const user = users.find(
+      (u) => u.name.toLowerCase() === normalizedInput || u.email.toLowerCase() === normalizedInput
+    );
+  
+    if (user && user.password === passwordInput) {
+      if (typeof window !== 'undefined') {
+        const { password, ...userToStore } = user;
+        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
+        window.dispatchEvent(new Event('storage'));
+      }
+      return user;
+    }
+    return null;
+}
 
 export function logout() {
     if (typeof window !== 'undefined') {
         localStorage.removeItem(USER_STORAGE_KEY);
+        window.dispatchEvent(new Event('storage'));
     }
 }
 
-export function getCurrentUser(): {id: string, name: string, email: string} | null {
-    if (typeof window === 'undefined') {
-      const defaultUser = getStoredUsers()[0];
-      if (defaultUser) {
-        const { password, ...userToReturn } = defaultUser;
-        return userToReturn;
-      }
-      return null;
-    };
+export function getCurrentUser(): User | null {
+    if (typeof window === 'undefined') return null;
     const userJson = localStorage.getItem(USER_STORAGE_KEY);
-    if (!userJson) {
-       const defaultUser = getStoredUsers()[0];
-       if (defaultUser) {
-        const { password, ...userToStore } = defaultUser;
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(userToStore));
-        return userToStore;
-       }
-       return null;
-    }
+    if (!userJson) return null;
     try {
         const user = JSON.parse(userJson);
-        return { id: user.id, name: user.name, email: user.email };
+        // We need the full user object from the main list to check for password change requirements
+        const allUsers = getStoredUsers();
+        return allUsers.find(u => u.id === user.id) || null;
     } catch (error) {
         return null;
     }
@@ -92,7 +97,7 @@ export function updateUser(updatedUser: User): User[] {
         ? updatedUser.password
         : existingUser.password;
 
-    const requiresPasswordChange = updatedUser.password && updatedUser.password.length > 0
+    const requiresPasswordChange = updatedUser.password && updatedUser.password.length > 0 && updatedUser.password !== existingUser.password
         ? false
         : existingUser.requiresPasswordChange;
 
